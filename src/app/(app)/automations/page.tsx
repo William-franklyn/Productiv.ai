@@ -1,12 +1,11 @@
-import { ComingSoon } from "@/components/shell/ComingSoon";
+import { TaskList } from "@/components/automations/TaskList";
 
 export const metadata = { title: "Automations" };
 
 export default function AutomationsPage() {
   return (
-    <ComingSoon
-      title="Automations"
-      body="Tasks the assistant creates on your behalf will show up here, tracked to completion."
-    />
+    <main className="p-8">
+      <TaskList />
+    </main>
   );
 }
