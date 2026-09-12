@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { Send } from "lucide-react";
@@ -9,6 +10,7 @@ import { ChatMessage } from "./ChatMessage";
 import { EmptyState } from "./EmptyState";
 
 export function ChatPanel({ conversationId }: { conversationId: string }) {
+  const searchParams = useSearchParams();
   const [transport] = useState(
     () =>
       new DefaultChatTransport({
@@ -17,7 +19,7 @@ export function ChatPanel({ conversationId }: { conversationId: string }) {
       }),
   );
   const { messages, sendMessage, status, error } = useChat({ transport });
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(() => searchParams.get("q") ?? "");
   const bottomRef = useRef<HTMLDivElement>(null);
   const busy = status === "streaming" || status === "submitted";
 

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BarChart3, ListTodo, Search } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 
@@ -38,6 +39,12 @@ export function CapabilitiesCard() {
           </div>
         ))}
       </div>
+      <Link
+        href="/capabilities"
+        className="mt-4 inline-block text-[var(--text-sm)] text-[var(--accent)]"
+      >
+        See all capabilities →
+      </Link>
     </Card>
   );
 }
