@@ -7,7 +7,7 @@ export default async function ChatPage() {
   const { orgName } = await requireAuth();
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)]">
+    <div className="chat-scope flex h-[calc(100vh-3.5rem)]">
       <ChatShell orgName={orgName} />
     </div>
   );
