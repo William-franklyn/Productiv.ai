@@ -88,29 +88,6 @@ body {
   color: var(--ink);
 }
 
-/* The standalone Chat surface gets its own accent — violet — distinct from
-   the platform's cobalt blue, the same deliberate two-brand split as a
-   chat-only surface next to a broader workspace product. */
-.chat-scope {
-  --accent: #6c5ce7;
-  --accent-ink: #ffffff;
-  --accent-soft: #efecfd;
-}
-
-:root[data-theme="dark"] .chat-scope {
-  --accent: #a29bfe;
-  --accent-ink: #14121f;
-  --accent-soft: #241f38;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .chat-scope {
-    --accent: #a29bfe;
-    --accent-ink: #14121f;
-    --accent-soft: #241f38;
-  }
-}
-
 /* Chart tokens — validated categorical palette, fixed slot order.
    See the dataviz design skill for the source palette and rationale. */
 .viz-root {

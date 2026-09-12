@@ -25,10 +25,10 @@ export const CAPABILITIES: Capability[] = [
     example: "Chart Q1 vs Q2 revenue: 42000 and 51000",
   },
   {
-    id: "search-mode",
-    title: "Quote sources exactly",
-    detail: "Switch a chat to Search mode and every sentence is a direct quote, cited, with no added analysis.",
-    example: "Switch to Search mode under /chat, then ask a question",
+    id: "meeting",
+    title: "Schedule a meeting",
+    detail: "Adds a meeting to your workspace's calendar under Automations, or cancels one by name.",
+    example: "Schedule a meeting with the design team tomorrow at 2pm",
   },
 ];
 

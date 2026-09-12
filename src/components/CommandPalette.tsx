@@ -36,10 +36,10 @@ export function CommandPalette({
 
   const actions: PaletteAction[] = [
     {
-      id: "new-chat",
-      label: "Start a new chat",
+      id: "assistant",
+      label: "Ask the assistant",
       icon: Plus,
-      run: () => router.push("/chat"),
+      run: () => router.push("/assistant"),
     },
     {
       id: "capabilities",

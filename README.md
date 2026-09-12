@@ -19,9 +19,10 @@ themselves.
 - **Knowledge platform** — upload `.txt` / `.md` / `.csv` / `.json` / `.pdf`,
   extracted and chunked server-side, embedded with Voyage `voyage-3.5`
   (1024-dim), retrieved by cosine similarity scoped to your org.
-- **Assistant chat** — Claude Sonnet 5 via the Vercel AI SDK, streaming, with
-  three tools: `search_knowledge` (cited retrieval), `create_task`, and
-  `generate_chart`.
+- **Assistant chat** — Claude Sonnet 5 via the Vercel AI SDK, streaming, pops
+  out to its own browser tab, with tools: `search_knowledge` (cited
+  retrieval), `create_task`, `generate_chart`, and `schedule_meeting` /
+  `list_meetings` / `cancel_meeting`.
 - **Charts** — bar / line / stat tiles rendered with a validated,
   colorblind-safe categorical palette (fixed hue order, always a legend for
   multi-series, a table-view fallback).
