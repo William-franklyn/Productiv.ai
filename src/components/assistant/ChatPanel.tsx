@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import type { UIMessage } from "ai";
 import { ExternalLink, Loader2, Paperclip, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ChatMessage } from "./ChatMessage";
@@ -11,7 +12,13 @@ import { EmptyState } from "./EmptyState";
 import { EmailDraftPanel } from "./EmailDraftPanel";
 import { getEmailDraft } from "@/lib/ai/message-parts";
 
-export function ChatPanel({ conversationId }: { conversationId: string }) {
+export function ChatPanel({
+  conversationId,
+  initialMessages,
+}: {
+  conversationId: string;
+  initialMessages: UIMessage[];
+}) {
   const searchParams = useSearchParams();
   const [transport] = useState(
     () =>
@@ -20,7 +27,7 @@ export function ChatPanel({ conversationId }: { conversationId: string }) {
         body: { conversationId },
       }),
   );
-  const { messages, sendMessage, status, error } = useChat({ transport });
+  const { messages, sendMessage, status, error } = useChat({ transport, messages: initialMessages });
   const [input, setInput] = useState(() => searchParams.get("q") ?? "");
   const bottomRef = useRef<HTMLDivElement>(null);
   const busy = status === "streaming" || status === "submitted";
@@ -73,11 +80,11 @@ export function ChatPanel({ conversationId }: { conversationId: string }) {
   }
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)]">
+    <div className="flex h-screen">
       <div className="flex flex-1 flex-col">
         <div className="flex items-center justify-end border-b border-[var(--border)] px-4 py-2">
           <button
-            onClick={() => window.open("/assistant", "_blank", "noopener,noreferrer")}
+            onClick={() => window.open(`/assistant/${conversationId}`, "_blank", "noopener,noreferrer")}
             className="flex items-center gap-1.5 rounded-[var(--radius)] px-2 py-1 text-[var(--text-xs)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
           >
             <ExternalLink size={13} />

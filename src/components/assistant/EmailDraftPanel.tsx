@@ -65,7 +65,7 @@ export function EmailDraftPanel({
   }
 
   return (
-    <aside className="flex h-[calc(100vh-3.5rem)] w-96 shrink-0 flex-col border-l border-[var(--border)] bg-[var(--surface)]">
+    <aside className="flex h-screen w-96 shrink-0 flex-col border-l border-[var(--border)] bg-[var(--surface)]">
       <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
         <div className="flex items-center gap-2 text-[var(--text-sm)] font-medium">
           <Mail size={15} className="text-[var(--accent)]" />

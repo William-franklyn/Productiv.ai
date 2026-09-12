@@ -53,11 +53,24 @@ export async function POST(req: NextRequest) {
 
   const lastMessage = messages[messages.length - 1];
   if (lastMessage?.role === "user") {
+    const text = getText(lastMessage);
     await supabase.from("messages").insert({
       conversation_id: conversationId,
       role: "user",
-      content: getText(lastMessage),
+      content: text,
     });
+
+    const { data: conversation } = await supabase
+      .from("conversations")
+      .select("title")
+      .eq("id", conversationId)
+      .single();
+    if (conversation?.title === "New conversation") {
+      await supabase
+        .from("conversations")
+        .update({ title: text.slice(0, 60) })
+        .eq("id", conversationId);
+    }
   }
 
   const {
