@@ -8,6 +8,23 @@ import { summarizeDataset, groupByAggregate, type Aggregate } from "@/lib/knowle
 import type { Dataset } from "@/lib/knowledge/tabular";
 import type { FormField } from "@/lib/forms/types";
 
+async function fetchMembers(supabase: SupabaseClient, orgId: string) {
+  const { data } = await supabase
+    .from("memberships")
+    .select("user_id, profiles(full_name)")
+    .eq("organization_id", orgId);
+
+  return (data ?? []).map((row) => {
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return { userId: row.user_id as string, fullName: (profile?.full_name ?? "") as string };
+  });
+}
+
+function matchMemberByName(members: { userId: string; fullName: string }[], name: string) {
+  const matches = members.filter((m) => m.fullName.toLowerCase().includes(name.toLowerCase()));
+  return matches.length === 1 ? matches[0] : null;
+}
+
 export function buildTools(ctx: {
   supabase: SupabaseClient;
   orgId: string;
@@ -39,15 +56,30 @@ export function buildTools(ctx: {
 
     create_task: tool({
       description:
-        "Create a task for the team — an action item or to-do to track.",
+        "Create a task for the team — an action item or to-do to track. Assign it to a teammate by name if the user says who should do it.",
       inputSchema: z.object({
         title: z.string(),
         dueDate: z
           .string()
           .optional()
           .describe("ISO date (YYYY-MM-DD), if the user gave one"),
+        assigneeName: z.string().optional().describe("Name of the teammate to assign this to, if given"),
       }),
-      execute: async ({ title, dueDate }) => {
+      execute: async ({ title, dueDate, assigneeName }) => {
+        let assignedTo: string | null = null;
+        if (assigneeName) {
+          const members = await fetchMembers(ctx.supabase, ctx.orgId);
+          const match = matchMemberByName(members, assigneeName);
+          if (!match) {
+            return {
+              ok: false as const,
+              reason: "assignee_not_found" as const,
+              availableNames: members.map((m) => m.fullName).filter(Boolean),
+            };
+          }
+          assignedTo = match.userId;
+        }
+
         const { data, error } = await ctx.supabase
           .from("tasks")
           .insert({
@@ -55,6 +87,7 @@ export function buildTools(ctx: {
             created_by: ctx.userId,
             title,
             due_date: dueDate ?? null,
+            assigned_to: assignedTo,
           })
           .select("id")
           .single();
@@ -65,10 +98,76 @@ export function buildTools(ctx: {
           organizationId: ctx.orgId,
           actorId: ctx.userId,
           action: "created_task",
-          detail: `Assistant created task: ${title}`,
+          detail: assigneeName
+            ? `Assistant created task: ${title} (assigned to ${assigneeName})`
+            : `Assistant created task: ${title}`,
         });
 
-        return { ok: true as const, taskId: data.id, title };
+        return { ok: true as const, taskId: data.id, title, assigneeName: assigneeName ?? null };
+      },
+    }),
+
+    list_tasks: tool({
+      description: "List the team's tasks — everything open by default, or filter to just the user's own.",
+      inputSchema: z.object({
+        assignedToMe: z.boolean().optional().describe("True to show only tasks assigned to the current user"),
+        status: z.enum(["open", "done", "all"]).optional().describe("Defaults to 'open'"),
+      }),
+      execute: async ({ assignedToMe, status }) => {
+        let query = ctx.supabase
+          .from("tasks")
+          .select("title, status, due_date, assigned_to")
+          .eq("organization_id", ctx.orgId)
+          .order("due_date", { ascending: true, nullsFirst: false });
+
+        if (status !== "all") query = query.eq("status", status ?? "open");
+        if (assignedToMe) query = query.eq("assigned_to", ctx.userId);
+
+        const { data, error } = await query;
+        if (error) return { ok: false as const, error: error.message };
+
+        const members = await fetchMembers(ctx.supabase, ctx.orgId);
+        const nameById = new Map(members.map((m) => [m.userId, m.fullName]));
+
+        return {
+          ok: true as const,
+          tasks: (data ?? []).map((t) => ({
+            title: t.title,
+            status: t.status,
+            dueDate: t.due_date,
+            assigneeName: t.assigned_to ? nameById.get(t.assigned_to) ?? null : null,
+          })),
+        };
+      },
+    }),
+
+    complete_task: tool({
+      description: "Mark a task as done, matched by title.",
+      inputSchema: z.object({
+        titleQuery: z.string().describe("Text to match against task titles"),
+      }),
+      execute: async ({ titleQuery }) => {
+        const { data, error } = await ctx.supabase
+          .from("tasks")
+          .select("id, title")
+          .eq("organization_id", ctx.orgId)
+          .eq("status", "open")
+          .ilike("title", `%${titleQuery}%`);
+
+        if (error) return { ok: false as const, reason: "error" as const, error: error.message };
+        if (!data || data.length === 0) return { ok: false as const, reason: "not_found" as const };
+        if (data.length > 1) {
+          return { ok: false as const, reason: "ambiguous" as const, candidates: data.map((t) => t.title) };
+        }
+
+        const task = data[0];
+        const { error: updateError } = await ctx.supabase
+          .from("tasks")
+          .update({ status: "done" })
+          .eq("id", task.id);
+        if (updateError) return { ok: false as const, reason: "error" as const, error: updateError.message };
+
+        return { ok: true as const, title: task.title };
       },
     }),
 
@@ -336,23 +435,13 @@ export function buildTools(ctx: {
           return { ok: false as const, reason: "no_names_given" as const };
         }
 
-        const { data: memberRows } = await ctx.supabase
-          .from("memberships")
-          .select("user_id, profiles(full_name)")
-          .eq("organization_id", ctx.orgId);
-
-        const members = (memberRows ?? []).map((row) => {
-          const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
-          return { userId: row.user_id, fullName: profile?.full_name ?? "" };
-        });
+        const members = await fetchMembers(ctx.supabase, ctx.orgId);
 
         const matchedUserIds: string[] = [];
         const unmatched: string[] = [];
         for (const name of restrictNames) {
-          const matches = members.filter((m) =>
-            m.fullName.toLowerCase().includes(name.toLowerCase()),
-          );
-          if (matches.length === 1) matchedUserIds.push(matches[0].userId);
+          const match = matchMemberByName(members, name);
+          if (match) matchedUserIds.push(match.userId);
           else unmatched.push(name);
         }
 

@@ -895,3 +895,13 @@ alter table form_responses enable row level security;
 create policy "members read own organization form responses"
   on form_responses for select
   using (is_member_of(organization_id));
+
+-- ============================================================================
+-- 017_task_assignment.sql
+-- Tasks can now be assigned to a specific teammate.
+-- ============================================================================
+
+-- left for whoever picks it up.
+alter table tasks add column assigned_to uuid references profiles (id) on delete set null;
+
+create index tasks_assigned_to_idx on tasks (assigned_to);

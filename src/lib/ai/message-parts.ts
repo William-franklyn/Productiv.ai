@@ -67,9 +67,21 @@ export function getChart(message: UIMessage): ChartSpec | null {
 }
 
 export function getCreatedTasks(message: UIMessage) {
-  const tasks: { title: string }[] = [];
+  const tasks: { title: string; assigneeName: string | null }[] = [];
   for (const part of message.parts) {
     if (part.type !== "tool-create_task" || !isOutputAvailable(part)) continue;
+    const output = part.output as { ok: boolean; title?: string; assigneeName?: string | null };
+    if (output.ok && output.title) {
+      tasks.push({ title: output.title, assigneeName: output.assigneeName ?? null });
+    }
+  }
+  return tasks;
+}
+
+export function getCompletedTasks(message: UIMessage) {
+  const tasks: { title: string }[] = [];
+  for (const part of message.parts) {
+    if (part.type !== "tool-complete_task" || !isOutputAvailable(part)) continue;
     const output = part.output as { ok: boolean; title?: string };
     if (output.ok && output.title) tasks.push({ title: output.title });
   }
@@ -208,6 +220,8 @@ export function isToolPending(message: UIMessage): string | null {
     "tool-restrict_source_access": "Updating access…",
     "tool-create_form": "Building form…",
     "tool-list_form_responses": "Fetching responses…",
+    "tool-list_tasks": "Checking tasks…",
+    "tool-complete_task": "Marking task done…",
   };
   for (const part of message.parts) {
     if (part.type in labels && !isOutputAvailable(part)) {

@@ -3,6 +3,7 @@ import {
   BarChart3,
   CalendarCheck,
   CalendarX,
+  Check,
   ClipboardList,
   ExternalLink,
   FileText,
@@ -19,6 +20,7 @@ import {
   getCancelledMeetings,
   getChart,
   getCitations,
+  getCompletedTasks,
   getCreatedForms,
   getCreatedTasks,
   getDataAnalysis,
@@ -40,6 +42,7 @@ export function ChatMessage({
   const citations = isUser ? [] : getCitations(message);
   const chart = isUser ? null : getChart(message);
   const tasks = isUser ? [] : getCreatedTasks(message);
+  const completedTasks = isUser ? [] : getCompletedTasks(message);
   const scheduledMeetings = isUser ? [] : getScheduledMeetings(message);
   const cancelledMeetings = isUser ? [] : getCancelledMeetings(message);
   const emailDraft = isUser ? null : getEmailDraft(message);
@@ -82,6 +85,19 @@ export function ChatMessage({
         >
           <ListTodo size={15} className="text-[var(--accent)]" />
           Created task: {t.title}
+          {t.assigneeName && (
+            <span className="text-[var(--text-xs)] text-[var(--muted)]">→ {t.assigneeName}</span>
+          )}
+        </div>
+      ))}
+
+      {completedTasks.map((t, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-[var(--text-sm)]"
+        >
+          <Check size={15} className="text-[var(--success)]" />
+          Completed: {t.title}
         </div>
       ))}
 
