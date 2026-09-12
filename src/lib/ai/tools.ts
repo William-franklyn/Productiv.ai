@@ -2,6 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { searchKnowledge } from "@/lib/knowledge/retrieval";
+import { logActivity } from "@/lib/activity";
 
 export function buildTools(ctx: {
   supabase: SupabaseClient;
@@ -54,6 +55,14 @@ export function buildTools(ctx: {
           .single();
 
         if (error) return { ok: false as const, error: error.message };
+
+        await logActivity(ctx.supabase, {
+          organizationId: ctx.orgId,
+          actorId: ctx.userId,
+          action: "created_task",
+          detail: `Assistant created task: ${title}`,
+        });
+
         return { ok: true as const, taskId: data.id, title };
       },
     }),

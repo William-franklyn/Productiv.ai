@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SUPPORTED_MIME_TYPES } from "@/lib/knowledge/extract";
 import { ingestSource } from "@/lib/knowledge/ingest";
+import { logActivity } from "@/lib/activity";
 
 const MAX_FILE_BYTES = 15 * 1024 * 1024;
 
@@ -83,6 +84,13 @@ export async function POST(req: NextRequest) {
     organizationId: auth.orgId,
     buffer,
     mimeType: file.type,
+  });
+
+  await logActivity(admin, {
+    organizationId: auth.orgId,
+    actorId: auth.userId,
+    action: "uploaded_document",
+    detail: `Uploaded ${file.name}`,
   });
 
   return NextResponse.json({ id: source.id }, { status: 201 });

@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { z } from "zod";
 import { requireAuthApi } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
+import { logActivity } from "@/lib/activity";
 
 const bodySchema = z.object({
   email: z.string().email(),
@@ -39,6 +40,13 @@ export async function POST(req: NextRequest) {
   if (error || !data) {
     return NextResponse.json({ error: "Could not create invite" }, { status: 500 });
   }
+
+  await logActivity(supabase, {
+    organizationId: auth.orgId,
+    actorId: auth.userId,
+    action: "invited_teammate",
+    detail: `Invited ${parsed.data.email}`,
+  });
 
   return NextResponse.json({ invite: data }, { status: 201 });
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Plus, Sparkles, type LucideIcon } from "lucide-react";
+import { Search, Plus, Sparkles, History, type LucideIcon } from "lucide-react";
 import { navItems } from "@/lib/nav";
 
 interface PaletteAction {
@@ -46,6 +46,12 @@ export function CommandPalette({
       label: "What can ProductivAI do?",
       icon: Sparkles,
       run: () => router.push("/capabilities"),
+    },
+    {
+      id: "activity",
+      label: "Go to Activity",
+      icon: History,
+      run: () => router.push("/activity"),
     },
     ...navItems.map((item) => ({
       id: item.href,
