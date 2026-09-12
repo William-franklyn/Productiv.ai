@@ -109,6 +109,29 @@ export function getCancelledMeetings(message: UIMessage) {
   return meetings;
 }
 
+export interface DraftedEmail {
+  draftId: string;
+  to: string;
+  subject: string;
+}
+
+/**
+ * The most recent draft_email call in this message — a message could in
+ * principle draft more than one, but the review panel only ever shows one
+ * at a time, so last-one-wins matches what the user sees happen.
+ */
+export function getEmailDraft(message: UIMessage): DraftedEmail | null {
+  let latest: DraftedEmail | null = null;
+  for (const part of message.parts) {
+    if (part.type !== "tool-draft_email" || !isOutputAvailable(part)) continue;
+    const output = part.output as { ok: boolean; draftId?: string; to?: string; subject?: string };
+    if (output.ok && output.draftId) {
+      latest = { draftId: output.draftId, to: output.to ?? "", subject: output.subject ?? "" };
+    }
+  }
+  return latest;
+}
+
 export function getText(message: UIMessage): string {
   return message.parts
     .filter((p): p is Extract<AnyPart, { type: "text" }> => p.type === "text")
@@ -124,6 +147,7 @@ export function isToolPending(message: UIMessage): string | null {
     "tool-schedule_meeting": "Scheduling meeting…",
     "tool-list_meetings": "Checking the calendar…",
     "tool-cancel_meeting": "Cancelling meeting…",
+    "tool-draft_email": "Drafting email…",
   };
   for (const part of message.parts) {
     if (part.type in labels && !isOutputAvailable(part)) {

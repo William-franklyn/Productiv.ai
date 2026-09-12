@@ -8,12 +8,19 @@ import {
   getChart,
   getCitations,
   getCreatedTasks,
+  getEmailDraft,
   getScheduledMeetings,
   getText,
   isToolPending,
 } from "@/lib/ai/message-parts";
 
-export function ChatMessage({ message }: { message: UIMessage }) {
+export function ChatMessage({
+  message,
+  onOpenDraft,
+}: {
+  message: UIMessage;
+  onOpenDraft?: (draftId: string) => void;
+}) {
   const isUser = message.role === "user";
   const text = getText(message);
   const citations = isUser ? [] : getCitations(message);
@@ -21,6 +28,7 @@ export function ChatMessage({ message }: { message: UIMessage }) {
   const tasks = isUser ? [] : getCreatedTasks(message);
   const scheduledMeetings = isUser ? [] : getScheduledMeetings(message);
   const cancelledMeetings = isUser ? [] : getCancelledMeetings(message);
+  const emailDraft = isUser ? null : getEmailDraft(message);
   const pending = isUser ? null : isToolPending(message);
 
   if (isUser) {
@@ -89,6 +97,16 @@ export function ChatMessage({ message }: { message: UIMessage }) {
           Cancelled: {m.title}
         </div>
       ))}
+
+      {emailDraft && (
+        <button
+          onClick={() => onOpenDraft?.(emailDraft.draftId)}
+          className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-left text-[var(--text-sm)] hover:bg-[var(--accent-soft)]"
+        >
+          <Mail size={15} className="text-[var(--accent)]" />
+          Drafted email: {emailDraft.subject || "(no subject)"}
+        </button>
+      )}
 
       {citations.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">

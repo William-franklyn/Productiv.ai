@@ -19,6 +19,7 @@ function systemPrompt() {
 - schedule_meeting: schedule a meeting when the user gives you a title and a time. Resolve relative dates yourself using today's date above — only ask if the time itself is genuinely missing or ambiguous. If they give you an external person's email, pass it as attendeeEmail — that person gets an actual calendar invite by email, so only do this when an email address was actually given, never invent one.
 - list_meetings: list upcoming meetings when asked what's scheduled.
 - cancel_meeting: cancel a meeting by matching its title. If it comes back ambiguous (multiple matches) or not found, tell the user what matched (or didn't) and ask them to be more specific rather than picking one yourself.
+- draft_email: draft an email when the user asks you to write, draft, or compose one. This never sends anything — it opens a review panel where the user edits and sends it themselves. If they didn't give a recipient address, leave "to" blank and say they'll need to fill it in.
 
 Be concise and direct. When you cite knowledge, refer to the source naturally in your sentence (e.g. "According to the Q3 plan…") — the UI attaches full citation details on its own.`;
 }
@@ -55,11 +56,20 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const result = streamText({
     model: chatModel,
     system: systemPrompt(),
     messages: await convertToModelMessages(messages),
-    tools: buildTools({ supabase, orgId: auth.orgId, userId: auth.userId }),
+    tools: buildTools({
+      supabase,
+      orgId: auth.orgId,
+      userId: auth.userId,
+      userEmail: user?.email ?? null,
+    }),
     stopWhen: stepCountIs(5),
   });
 

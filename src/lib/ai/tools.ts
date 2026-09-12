@@ -9,6 +9,7 @@ export function buildTools(ctx: {
   supabase: SupabaseClient;
   orgId: string;
   userId: string;
+  userEmail?: string | null;
 }) {
   return {
     search_knowledge: tool({
@@ -187,6 +188,41 @@ export function buildTools(ctx: {
         }
 
         return { ok: true as const, title: meeting.title };
+      },
+    }),
+
+    draft_email: tool({
+      description:
+        "Draft an email for the user to review, edit, and send themselves. This NEVER sends anything — it only creates a draft that opens in a review panel. Use it whenever the user asks you to write, draft, or compose an email.",
+      inputSchema: z.object({
+        to: z.string().optional().describe("Recipient email address, if the user gave one — otherwise leave blank"),
+        subject: z.string(),
+        body: z.string().describe("Plain-text email body"),
+      }),
+      execute: async ({ to, subject, body }) => {
+        const { data, error } = await ctx.supabase
+          .from("email_drafts")
+          .insert({
+            organization_id: ctx.orgId,
+            created_by: ctx.userId,
+            to_email: to ?? "",
+            subject,
+            body,
+            reply_to_email: ctx.userEmail ?? null,
+          })
+          .select("id")
+          .single();
+
+        if (error) return { ok: false as const, error: error.message };
+
+        await logActivity(ctx.supabase, {
+          organizationId: ctx.orgId,
+          actorId: ctx.userId,
+          action: "drafted_email",
+          detail: `Assistant drafted email: ${subject}`,
+        });
+
+        return { ok: true as const, draftId: data.id, to: to ?? "", subject };
       },
     }),
 
