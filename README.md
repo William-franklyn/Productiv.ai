@@ -17,8 +17,8 @@ themselves.
 - **Multi-tenant auth** — Supabase Auth + Postgres RLS, one organization per
   workspace, owner/admin/member roles, invite-by-link.
 - **Knowledge platform** — upload `.txt` / `.md` / `.csv` / `.json` / `.pdf`,
-  extracted and chunked server-side, embedded with OpenAI
-  `text-embedding-3-small`, retrieved by cosine similarity scoped to your org.
+  extracted and chunked server-side, embedded with Voyage `voyage-3.5`
+  (1024-dim), retrieved by cosine similarity scoped to your org.
 - **Assistant chat** — Claude Sonnet 5 via the Vercel AI SDK, streaming, with
   three tools: `search_knowledge` (cited retrieval), `create_task`, and
   `generate_chart`.
@@ -36,7 +36,7 @@ themselves.
 
 - **Frontend/API:** Next.js (App Router), TypeScript, Tailwind v4
 - **Database/Auth:** Supabase (Postgres + pgvector, Row-Level Security, multi-tenant)
-- **AI:** Anthropic Claude for chat and answer synthesis, OpenAI embeddings for
+- **AI:** Anthropic Claude for chat and answer synthesis, Voyage embeddings for
   retrieval
 - **Charts:** Recharts, rendered from structured data the assistant produces
 
@@ -51,7 +51,7 @@ themselves.
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
      `SUPABASE_SERVICE_ROLE_KEY` — from Supabase project settings → API.
    - `ANTHROPIC_API_KEY` — powers the assistant chat.
-   - `OPENAI_API_KEY` — powers knowledge-chunk embeddings.
+   - `VOYAGE_API_KEY` — powers knowledge-chunk embeddings.
 
 ```bash
 npm install
