@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAuthApi } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,4 +33,31 @@ export async function GET(
   }
 
   return NextResponse.json({ conversation, messages });
+}
+
+const patchSchema = z.object({ mode: z.enum(["chat", "search"]) });
+
+// Mode can only be changed before the first message is sent — see
+// ChatSurface, which hides the mode picker once messages exist.
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const auth = await requireAuthApi();
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const parsed = patchSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const { id } = await params;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("conversations")
+    .update({ mode: parsed.data.mode })
+    .eq("id", id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
 }
