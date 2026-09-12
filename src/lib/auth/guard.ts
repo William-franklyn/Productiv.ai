@@ -1,11 +1,18 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+
+export const VIEW_AS_COOKIE = "view_as_role";
+type Role = "owner" | "admin" | "member";
+const ROLE_RANK: Record<Role, number> = { owner: 2, admin: 1, member: 0 };
 
 export interface AuthContext {
   userId: string;
   orgId: string;
   orgName: string;
-  role: "owner" | "admin" | "member";
+  role: Role;
+  realRole: Role;
+  viewingAs: boolean;
   fullName: string | null;
 }
 
@@ -16,16 +23,33 @@ type ProfileRow = {
   organizations: { name: string } | { name: string }[] | null;
 };
 
-function toAuthContext(userId: string, profile: ProfileRow): AuthContext {
+async function resolveRole(realRole: Role): Promise<{ role: Role; viewingAs: boolean }> {
+  const store = await cookies();
+  const previewed = store.get(VIEW_AS_COOKIE)?.value as Role | undefined;
+
+  // Only a real owner/admin can preview a role, and only a *lower* one —
+  // this changes what the UI shows them, never what profiles.role actually
+  // says, so it can't be used to escalate privilege for anyone, including
+  // whoever set the cookie.
+  if (previewed && previewed in ROLE_RANK && ROLE_RANK[previewed] < ROLE_RANK[realRole]) {
+    return { role: previewed, viewingAs: true };
+  }
+  return { role: realRole, viewingAs: false };
+}
+
+async function toAuthContext(userId: string, profile: ProfileRow): Promise<AuthContext> {
   const org = Array.isArray(profile.organizations)
     ? profile.organizations[0]
     : profile.organizations;
+  const { role, viewingAs } = await resolveRole(profile.role);
 
   return {
     userId,
     orgId: profile.organization_id,
     orgName: org?.name ?? "Workspace",
-    role: profile.role,
+    role,
+    realRole: profile.role,
+    viewingAs,
     fullName: profile.full_name,
   };
 }
@@ -51,7 +75,7 @@ export async function requireAuth(): Promise<AuthContext> {
 
   if (!profile) redirect("/signup");
 
-  return toAuthContext(user.id, profile as ProfileRow);
+  return await toAuthContext(user.id, profile as ProfileRow);
 }
 
 export async function requireAuthApi(): Promise<AuthContext | null> {
@@ -68,5 +92,5 @@ export async function requireAuthApi(): Promise<AuthContext | null> {
     .single();
   if (!profile) return null;
 
-  return toAuthContext(user.id, profile as ProfileRow);
+  return await toAuthContext(user.id, profile as ProfileRow);
 }

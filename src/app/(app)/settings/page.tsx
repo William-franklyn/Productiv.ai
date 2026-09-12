@@ -2,11 +2,12 @@ import { requireAuth } from "@/lib/auth/guard";
 import { Card } from "@/components/ui/Card";
 import { WorkspaceNameForm } from "@/components/settings/WorkspaceNameForm";
 import { CapabilitiesCard } from "@/components/settings/CapabilitiesCard";
+import { ViewAsControl } from "@/components/settings/ViewAsControl";
 
 export const metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
-  const { orgName, role, fullName } = await requireAuth();
+  const { orgName, role, realRole, fullName, viewingAs } = await requireAuth();
 
   return (
     <main className="flex flex-col gap-6 p-8">
@@ -16,11 +17,14 @@ export default async function SettingsPage() {
         <h3 className="text-[var(--text-base)] font-medium">Workspace</h3>
         <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">
           Signed in as {fullName ?? "you"} · {role}
+          {viewingAs && ` (previewing — actually ${realRole})`}
         </p>
         <div className="mt-4">
           <WorkspaceNameForm initialName={orgName} canEdit={role !== "member"} />
         </div>
       </Card>
+
+      <ViewAsControl realRole={realRole} />
 
       <CapabilitiesCard />
     </main>
