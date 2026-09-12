@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   MessagesSquare,
+  MessageCircleQuestion,
   BookOpen,
   Zap,
   Users,
@@ -17,6 +18,7 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Assistant", href: "/assistant", icon: MessagesSquare },
+  { label: "Chat", href: "/chat", icon: MessageCircleQuestion },
   { label: "Knowledge", href: "/knowledge", icon: BookOpen },
   { label: "Automations", href: "/automations", icon: Zap },
   { label: "Team", href: "/team", icon: Users },

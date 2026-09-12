@@ -36,6 +36,27 @@ export function getCitations(message: UIMessage): Citation[] {
   return citations;
 }
 
+export interface CitedChunk extends Citation {
+  content: string;
+}
+
+/**
+ * The ordered chunk list from the most recent search_knowledge call in this
+ * message — order matters here, since it's what inline [1]/[2] markers in
+ * the model's text index into.
+ */
+export function getOrderedChunks(message: UIMessage): CitedChunk[] {
+  let latest: CitedChunk[] = [];
+  for (const part of message.parts) {
+    if (part.type !== "tool-search_knowledge" || !isOutputAvailable(part)) continue;
+    const output = part.output as
+      | { found: true; chunks: CitedChunk[] }
+      | { found: false };
+    if (output.found) latest = output.chunks;
+  }
+  return latest;
+}
+
 export function getChart(message: UIMessage): ChartSpec | null {
   for (const part of message.parts) {
     if (part.type === "tool-generate_chart" && isOutputAvailable(part)) {
