@@ -1,4 +1,5 @@
-import { Plus } from "lucide-react";
+import Link from "next/link";
+import { LayoutGrid, Plus } from "lucide-react";
 import clsx from "clsx";
 
 export interface ConversationSummary {
@@ -21,7 +22,14 @@ export function ConversationSidebar({
 }) {
   return (
     <aside className="flex w-64 flex-col border-r border-[var(--border)]">
-      <div className="p-3">
+      <div className="flex flex-col gap-2 p-3">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 rounded-[var(--radius)] px-2.5 py-2 text-[var(--text-sm)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
+        >
+          <LayoutGrid size={14} />
+          Workspace
+        </Link>
         <button
           onClick={onNew}
           className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius)] border border-[var(--border)] py-2 text-[var(--text-sm)] hover:bg-[var(--accent-soft)]"
