@@ -4,6 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { searchKnowledge } from "@/lib/knowledge/retrieval";
 import { logActivity } from "@/lib/activity";
 import { sendMeetingInvite, sendMeetingCancellation } from "@/lib/email/meeting-invite";
+import { summarizeDataset, groupByAggregate, type Aggregate } from "@/lib/knowledge/analyze";
+import type { Dataset } from "@/lib/knowledge/tabular";
 
 export function buildTools(ctx: {
   supabase: SupabaseClient;
@@ -223,6 +225,70 @@ export function buildTools(ctx: {
         });
 
         return { ok: true as const, draftId: data.id, to: to ?? "", subject };
+      },
+    }),
+
+    analyze_data: tool({
+      description:
+        "Compute real statistics over an uploaded data file (CSV or a JSON array of records) — sums, averages, min/max, and grouped breakdowns. Use this instead of search_knowledge whenever the question requires math across every row (totals, averages, \"which X has the highest Y\") rather than finding relevant passages. Follow up with generate_chart to visualize the result if useful.",
+      inputSchema: z.object({
+        sourceName: z.string().describe("Name (or partial name) of the uploaded data file to analyze"),
+        groupBy: z.string().optional().describe("Column to break the metric down by, e.g. 'region' or 'quarter'"),
+        metric: z.string().optional().describe("Numeric column to aggregate — required if groupBy is given"),
+        aggregate: z
+          .enum(["sum", "avg", "min", "max", "count"])
+          .optional()
+          .describe("How to aggregate the metric within each group. Defaults to sum."),
+      }),
+      execute: async ({ sourceName, groupBy, metric, aggregate }) => {
+        const { data: matches, error } = await ctx.supabase
+          .from("knowledge_sources")
+          .select("id, name, dataset")
+          .eq("organization_id", ctx.orgId)
+          .not("dataset", "is", null)
+          .ilike("name", `%${sourceName}%`);
+
+        if (error) return { ok: false as const, reason: "error" as const, error: error.message };
+        if (!matches || matches.length === 0) {
+          return { ok: false as const, reason: "not_found" as const };
+        }
+        if (matches.length > 1) {
+          return {
+            ok: false as const,
+            reason: "ambiguous" as const,
+            candidates: matches.map((m) => m.name),
+          };
+        }
+
+        const source = matches[0];
+        const dataset = source.dataset as Dataset;
+        const columnSummary = summarizeDataset(dataset);
+
+        if (groupBy && metric) {
+          if (!dataset.columns.includes(groupBy) || !dataset.columns.includes(metric)) {
+            return {
+              ok: false as const,
+              reason: "unknown_column" as const,
+              columns: dataset.columns,
+            };
+          }
+          const grouped = groupByAggregate(dataset, groupBy, metric, (aggregate ?? "sum") as Aggregate);
+          return {
+            ok: true as const,
+            sourceName: source.name,
+            rowCount: dataset.rows.length,
+            columns: dataset.columns,
+            groupBy: { column: groupBy, metric, aggregate: aggregate ?? "sum", rows: grouped },
+          };
+        }
+
+        return {
+          ok: true as const,
+          sourceName: source.name,
+          rowCount: dataset.rows.length,
+          columns: dataset.columns,
+          summary: columnSummary,
+        };
       },
     }),
 

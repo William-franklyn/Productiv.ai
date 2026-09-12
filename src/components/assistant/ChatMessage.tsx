@@ -1,5 +1,5 @@
 import type { UIMessage } from "ai";
-import { CalendarCheck, CalendarX, FileText, ListTodo, Loader2, Mail } from "lucide-react";
+import { BarChart3, CalendarCheck, CalendarX, FileText, ListTodo, Loader2, Mail } from "lucide-react";
 import clsx from "clsx";
 import { ChartRenderer } from "@/components/charts/ChartRenderer";
 import { ConfidenceBadge } from "./ConfidenceBadge";
@@ -8,6 +8,7 @@ import {
   getChart,
   getCitations,
   getCreatedTasks,
+  getDataAnalysis,
   getEmailDraft,
   getScheduledMeetings,
   getText,
@@ -29,6 +30,7 @@ export function ChatMessage({
   const scheduledMeetings = isUser ? [] : getScheduledMeetings(message);
   const cancelledMeetings = isUser ? [] : getCancelledMeetings(message);
   const emailDraft = isUser ? null : getEmailDraft(message);
+  const analyses = isUser ? [] : getDataAnalysis(message);
   const pending = isUser ? null : isToolPending(message);
 
   if (isUser) {
@@ -95,6 +97,16 @@ export function ChatMessage({
         >
           <CalendarX size={15} className="text-[var(--danger)]" />
           Cancelled: {m.title}
+        </div>
+      ))}
+
+      {analyses.map((a, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-[var(--text-sm)] text-[var(--muted)]"
+        >
+          <BarChart3 size={15} className="text-[var(--accent)]" />
+          Analyzed {a.sourceName} · {a.rowCount} rows
         </div>
       ))}
 

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { extractText } from "./extract";
 import { chunkText } from "./chunk";
 import { embedTexts } from "./embed";
+import { parseTabular } from "./tabular";
 
 /**
  * Extracts, chunks, and embeds a just-uploaded source, then flips its status
@@ -45,9 +46,11 @@ export async function ingestSource(params: {
       .insert(rows);
     if (insertError) throw insertError;
 
+    const dataset = parseTabular(text, mimeType);
+
     await admin
       .from("knowledge_sources")
-      .update({ status: "ready" })
+      .update({ status: "ready", dataset })
       .eq("id", sourceId);
   } catch (err) {
     await admin

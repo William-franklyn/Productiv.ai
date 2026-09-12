@@ -745,3 +745,13 @@ create policy "members manage own organization email drafts"
   on email_drafts for all
   using (is_member_of(organization_id))
   with check (is_member_of(organization_id));
+
+-- ============================================================================
+-- 013_knowledge_dataset.sql
+-- A source that parses as tabular (CSV, or a JSON array of objects) also
+-- gets a flat {columns, rows} representation stored alongside its chunks,
+-- so analyze_data can compute real aggregates instead of going through
+-- semantic retrieval.
+-- ============================================================================
+
+alter table knowledge_sources add column dataset jsonb;

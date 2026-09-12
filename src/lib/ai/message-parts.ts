@@ -132,6 +132,18 @@ export function getEmailDraft(message: UIMessage): DraftedEmail | null {
   return latest;
 }
 
+export function getDataAnalysis(message: UIMessage) {
+  const analyses: { sourceName: string; rowCount: number }[] = [];
+  for (const part of message.parts) {
+    if (part.type !== "tool-analyze_data" || !isOutputAvailable(part)) continue;
+    const output = part.output as { ok: boolean; sourceName?: string; rowCount?: number };
+    if (output.ok && output.sourceName && output.rowCount !== undefined) {
+      analyses.push({ sourceName: output.sourceName, rowCount: output.rowCount });
+    }
+  }
+  return analyses;
+}
+
 export function getText(message: UIMessage): string {
   return message.parts
     .filter((p): p is Extract<AnyPart, { type: "text" }> => p.type === "text")
@@ -148,6 +160,7 @@ export function isToolPending(message: UIMessage): string | null {
     "tool-list_meetings": "Checking the calendar…",
     "tool-cancel_meeting": "Cancelling meeting…",
     "tool-draft_email": "Drafting email…",
+    "tool-analyze_data": "Crunching numbers…",
   };
   for (const part of message.parts) {
     if (part.type in labels && !isOutputAvailable(part)) {
