@@ -67,6 +67,8 @@ standing up a fresh project in a single run.
 
 ## Credits
 
-This project's architecture and product patterns build on an earlier personal
-project of the author's. This is a fresh codebase under a new name and
-direction, not a copy of that project's repository.
+ProductivAI's feature set and design are explicitly modeled on the author's
+own earlier products, **getirabu.com** (marketing site) and **irabu.ai**
+(the permission-aware chat app) — same author, same underlying ideas,
+rebuilt fresh here under a new name and brand. This is a from-scratch
+codebase, not a copy of either repository's source.

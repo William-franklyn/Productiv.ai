@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { MarketingHeader } from "@/components/marketing/MarketingHeader";
+import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 
 const features = [
   {
@@ -35,20 +37,7 @@ const features = [
 export function Landing() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
-        <span className="text-[var(--text-lg)] font-semibold">ProductivAI</span>
-        <nav className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="px-3 py-2 text-[var(--text-sm)] text-[var(--muted)] hover:text-[var(--ink)]"
-          >
-            Sign in
-          </Link>
-          <Link href="/signup">
-            <Button size="sm">Get started</Button>
-          </Link>
-        </nav>
-      </header>
+      <MarketingHeader />
 
       <main className="mx-auto max-w-5xl px-6 pb-24 pt-16">
         <section className="max-w-2xl">
@@ -91,9 +80,7 @@ export function Landing() {
         </section>
       </main>
 
-      <footer className="border-t border-[var(--border)] py-8 text-center text-[var(--text-sm)] text-[var(--muted)]">
-        ProductivAI
-      </footer>
+      <MarketingFooter />
     </div>
   );
 }
