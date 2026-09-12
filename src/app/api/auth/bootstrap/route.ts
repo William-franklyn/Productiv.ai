@@ -7,7 +7,10 @@ import { ACTIVE_ORG_COOKIE } from "@/lib/auth/guard";
 
 const bodySchema = z.object({
   fullName: z.string().min(1).max(120),
-  orgName: z.string().min(1).max(120).optional(),
+  // Empty string, not just undefined — the signup form always sends this
+  // key, it just hides the input (and leaves it "") when an invite token is
+  // present, since the workspace is decided by the invite instead.
+  orgName: z.string().max(120).optional(),
   inviteToken: z.string().optional(),
 });
 

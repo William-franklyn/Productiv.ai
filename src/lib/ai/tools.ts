@@ -292,6 +292,98 @@ export function buildTools(ctx: {
       },
     }),
 
+    restrict_source_access: tool({
+      description:
+        "Restrict specific workspace members from accessing an uploaded knowledge source, or clear restrictions so everyone can access it again. Everyone in the workspace can access a source by default — this only adds or removes names from a deny-list on top of that.",
+      inputSchema: z.object({
+        sourceName: z.string().describe("Name (or partial name) of the uploaded document"),
+        restrictNames: z
+          .array(z.string())
+          .optional()
+          .describe("Names of members to restrict from this source"),
+        clearAll: z
+          .boolean()
+          .optional()
+          .describe("Set true to remove all restrictions on this source instead"),
+      }),
+      execute: async ({ sourceName, restrictNames, clearAll }) => {
+        const { data: sourceMatches, error: sourceError } = await ctx.supabase
+          .from("knowledge_sources")
+          .select("id, name")
+          .eq("organization_id", ctx.orgId)
+          .ilike("name", `%${sourceName}%`);
+
+        if (sourceError) return { ok: false as const, reason: "error" as const, error: sourceError.message };
+        if (!sourceMatches || sourceMatches.length === 0) {
+          return { ok: false as const, reason: "source_not_found" as const };
+        }
+        if (sourceMatches.length > 1) {
+          return {
+            ok: false as const,
+            reason: "source_ambiguous" as const,
+            candidates: sourceMatches.map((s) => s.name),
+          };
+        }
+        const source = sourceMatches[0];
+
+        if (clearAll) {
+          await ctx.supabase.from("knowledge_source_restrictions").delete().eq("source_id", source.id);
+          return { ok: true as const, sourceName: source.name, cleared: true as const };
+        }
+
+        if (!restrictNames || restrictNames.length === 0) {
+          return { ok: false as const, reason: "no_names_given" as const };
+        }
+
+        const { data: memberRows } = await ctx.supabase
+          .from("memberships")
+          .select("user_id, profiles(full_name)")
+          .eq("organization_id", ctx.orgId);
+
+        const members = (memberRows ?? []).map((row) => {
+          const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+          return { userId: row.user_id, fullName: profile?.full_name ?? "" };
+        });
+
+        const matchedUserIds: string[] = [];
+        const unmatched: string[] = [];
+        for (const name of restrictNames) {
+          const matches = members.filter((m) =>
+            m.fullName.toLowerCase().includes(name.toLowerCase()),
+          );
+          if (matches.length === 1) matchedUserIds.push(matches[0].userId);
+          else unmatched.push(name);
+        }
+
+        if (unmatched.length > 0) {
+          return {
+            ok: false as const,
+            reason: "member_not_found" as const,
+            unmatched,
+            availableNames: members.map((m) => m.fullName).filter(Boolean),
+          };
+        }
+
+        await ctx.supabase.from("knowledge_source_restrictions").upsert(
+          matchedUserIds.map((userId) => ({
+            source_id: source.id,
+            organization_id: ctx.orgId,
+            restricted_user_id: userId,
+          })),
+          { onConflict: "source_id,restricted_user_id", ignoreDuplicates: true },
+        );
+
+        await logActivity(ctx.supabase, {
+          organizationId: ctx.orgId,
+          actorId: ctx.userId,
+          action: "restricted_source",
+          detail: `Restricted access to ${source.name} for ${restrictNames.join(", ")}`,
+        });
+
+        return { ok: true as const, sourceName: source.name, restrictedCount: matchedUserIds.length };
+      },
+    }),
+
     generate_chart: tool({
       description:
         "Render a chart or a single stat tile from numeric data for the user. Use this any time the user asks to visualize, chart, plot, graph, or break down numbers — including data they just gave you in the conversation.",

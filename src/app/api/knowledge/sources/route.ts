@@ -13,16 +13,33 @@ export async function GET() {
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("knowledge_sources")
-    .select("id, name, mime_type, status, error, created_at")
-    .eq("organization_id", auth.orgId)
-    .order("created_at", { ascending: false });
+  const [{ data, error }, { data: restrictions }] = await Promise.all([
+    supabase
+      .from("knowledge_sources")
+      .select("id, name, mime_type, status, error, created_at")
+      .eq("organization_id", auth.orgId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("knowledge_source_restrictions")
+      .select("source_id")
+      .eq("organization_id", auth.orgId),
+  ]);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ sources: data });
+
+  const restrictedCounts = new Map<string, number>();
+  for (const r of restrictions ?? []) {
+    restrictedCounts.set(r.source_id, (restrictedCounts.get(r.source_id) ?? 0) + 1);
+  }
+
+  const sources = (data ?? []).map((s) => ({
+    ...s,
+    restrictedCount: restrictedCounts.get(s.id) ?? 0,
+  }));
+
+  return NextResponse.json({ sources });
 }
 
 export async function POST(req: NextRequest) {
@@ -31,6 +48,10 @@ export async function POST(req: NextRequest) {
 
   const formData = await req.formData();
   const file = formData.get("file");
+  const restrictedUserIds = String(formData.get("restrictedUserIds") ?? "[]")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -79,6 +100,16 @@ export async function POST(req: NextRequest) {
     .from("knowledge_sources")
     .update({ storage_path: storagePath })
     .eq("id", source.id);
+
+  if (restrictedUserIds.length > 0) {
+    await admin.from("knowledge_source_restrictions").insert(
+      restrictedUserIds.map((userId) => ({
+        source_id: source.id,
+        organization_id: auth.orgId,
+        restricted_user_id: userId,
+      })),
+    );
+  }
 
   await ingestSource({
     sourceId: source.id,

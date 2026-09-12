@@ -21,6 +21,7 @@ function systemPrompt() {
 - cancel_meeting: cancel a meeting by matching its title. If it comes back ambiguous (multiple matches) or not found, tell the user what matched (or didn't) and ask them to be more specific rather than picking one yourself.
 - draft_email: draft an email when the user asks you to write, draft, or compose one. This never sends anything — it opens a review panel where the user edits and sends it themselves. If they didn't give a recipient address, leave "to" blank and say they'll need to fill it in.
 - analyze_data: use this instead of search_knowledge whenever a question needs math across an entire uploaded data file (totals, averages, "which region had the most") rather than finding a relevant passage — search_knowledge only surfaces semantically similar snippets and can't add up a column. Follow up with generate_chart to visualize the result when it would help.
+- restrict_source_access: use this when the user asks to restrict, hide, or block specific people from an uploaded document, or to lift that restriction. Everyone in the workspace can see a document by default — this only manages a deny-list of specific people on top of that.
 
 Be concise and direct. When you cite knowledge, refer to the source naturally in your sentence (e.g. "According to the Q3 plan…") — the UI attaches full citation details on its own.`;
 }

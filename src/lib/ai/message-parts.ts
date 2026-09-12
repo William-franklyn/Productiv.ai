@@ -144,6 +144,27 @@ export function getDataAnalysis(message: UIMessage) {
   return analyses;
 }
 
+export function getAccessChanges(message: UIMessage) {
+  const changes: { sourceName: string; restrictedCount?: number; cleared?: boolean }[] = [];
+  for (const part of message.parts) {
+    if (part.type !== "tool-restrict_source_access" || !isOutputAvailable(part)) continue;
+    const output = part.output as {
+      ok: boolean;
+      sourceName?: string;
+      restrictedCount?: number;
+      cleared?: boolean;
+    };
+    if (output.ok && output.sourceName) {
+      changes.push({
+        sourceName: output.sourceName,
+        restrictedCount: output.restrictedCount,
+        cleared: output.cleared,
+      });
+    }
+  }
+  return changes;
+}
+
 export function getText(message: UIMessage): string {
   return message.parts
     .filter((p): p is Extract<AnyPart, { type: "text" }> => p.type === "text")
@@ -161,6 +182,7 @@ export function isToolPending(message: UIMessage): string | null {
     "tool-cancel_meeting": "Cancelling meeting…",
     "tool-draft_email": "Drafting email…",
     "tool-analyze_data": "Crunching numbers…",
+    "tool-restrict_source_access": "Updating access…",
   };
   for (const part of message.parts) {
     if (part.type in labels && !isOutputAvailable(part)) {

@@ -1,9 +1,10 @@
 import type { UIMessage } from "ai";
-import { BarChart3, CalendarCheck, CalendarX, FileText, ListTodo, Loader2, Mail } from "lucide-react";
+import { BarChart3, CalendarCheck, CalendarX, FileText, ListTodo, Loader2, Mail, ShieldOff } from "lucide-react";
 import clsx from "clsx";
 import { ChartRenderer } from "@/components/charts/ChartRenderer";
 import { ConfidenceBadge } from "./ConfidenceBadge";
 import {
+  getAccessChanges,
   getCancelledMeetings,
   getChart,
   getCitations,
@@ -31,6 +32,7 @@ export function ChatMessage({
   const cancelledMeetings = isUser ? [] : getCancelledMeetings(message);
   const emailDraft = isUser ? null : getEmailDraft(message);
   const analyses = isUser ? [] : getDataAnalysis(message);
+  const accessChanges = isUser ? [] : getAccessChanges(message);
   const pending = isUser ? null : isToolPending(message);
 
   if (isUser) {
@@ -107,6 +109,18 @@ export function ChatMessage({
         >
           <BarChart3 size={15} className="text-[var(--accent)]" />
           Analyzed {a.sourceName} · {a.rowCount} rows
+        </div>
+      ))}
+
+      {accessChanges.map((a, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-[var(--text-sm)] text-[var(--muted)]"
+        >
+          <ShieldOff size={15} className="text-[var(--accent)]" />
+          {a.cleared
+            ? `Cleared access restrictions on ${a.sourceName}`
+            : `Restricted ${a.restrictedCount} ${a.restrictedCount === 1 ? "person" : "people"} from ${a.sourceName}`}
         </div>
       ))}
 
