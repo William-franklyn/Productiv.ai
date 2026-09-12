@@ -76,6 +76,28 @@ export function getCreatedTasks(message: UIMessage) {
   return tasks;
 }
 
+export function getScheduledMeetings(message: UIMessage) {
+  const meetings: { title: string; startsAt: string }[] = [];
+  for (const part of message.parts) {
+    if (part.type !== "tool-schedule_meeting" || !isOutputAvailable(part)) continue;
+    const output = part.output as { ok: boolean; title?: string; startsAt?: string };
+    if (output.ok && output.title && output.startsAt) {
+      meetings.push({ title: output.title, startsAt: output.startsAt });
+    }
+  }
+  return meetings;
+}
+
+export function getCancelledMeetings(message: UIMessage) {
+  const meetings: { title: string }[] = [];
+  for (const part of message.parts) {
+    if (part.type !== "tool-cancel_meeting" || !isOutputAvailable(part)) continue;
+    const output = part.output as { ok: boolean; title?: string };
+    if (output.ok && output.title) meetings.push({ title: output.title });
+  }
+  return meetings;
+}
+
 export function getText(message: UIMessage): string {
   return message.parts
     .filter((p): p is Extract<AnyPart, { type: "text" }> => p.type === "text")
@@ -88,6 +110,9 @@ export function isToolPending(message: UIMessage): string | null {
     "tool-search_knowledge": "Searching knowledge…",
     "tool-generate_chart": "Building chart…",
     "tool-create_task": "Creating task…",
+    "tool-schedule_meeting": "Scheduling meeting…",
+    "tool-list_meetings": "Checking the calendar…",
+    "tool-cancel_meeting": "Cancelling meeting…",
   };
   for (const part of message.parts) {
     if (part.type in labels && !isOutputAvailable(part)) {

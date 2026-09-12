@@ -1,9 +1,17 @@
 import type { UIMessage } from "ai";
-import { FileText, ListTodo, Loader2 } from "lucide-react";
+import { CalendarCheck, CalendarX, FileText, ListTodo, Loader2 } from "lucide-react";
 import clsx from "clsx";
 import { ChartRenderer } from "@/components/charts/ChartRenderer";
 import { ConfidenceBadge } from "./ConfidenceBadge";
-import { getChart, getCitations, getCreatedTasks, getText, isToolPending } from "@/lib/ai/message-parts";
+import {
+  getCancelledMeetings,
+  getChart,
+  getCitations,
+  getCreatedTasks,
+  getScheduledMeetings,
+  getText,
+  isToolPending,
+} from "@/lib/ai/message-parts";
 
 export function ChatMessage({ message }: { message: UIMessage }) {
   const isUser = message.role === "user";
@@ -11,6 +19,8 @@ export function ChatMessage({ message }: { message: UIMessage }) {
   const citations = isUser ? [] : getCitations(message);
   const chart = isUser ? null : getChart(message);
   const tasks = isUser ? [] : getCreatedTasks(message);
+  const scheduledMeetings = isUser ? [] : getScheduledMeetings(message);
+  const cancelledMeetings = isUser ? [] : getCancelledMeetings(message);
   const pending = isUser ? null : isToolPending(message);
 
   if (isUser) {
@@ -47,6 +57,26 @@ export function ChatMessage({ message }: { message: UIMessage }) {
         >
           <ListTodo size={15} className="text-[var(--accent)]" />
           Created task: {t.title}
+        </div>
+      ))}
+
+      {scheduledMeetings.map((m, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-[var(--text-sm)]"
+        >
+          <CalendarCheck size={15} className="text-[var(--accent)]" />
+          Scheduled: {m.title} · {new Date(m.startsAt).toLocaleString()}
+        </div>
+      ))}
+
+      {cancelledMeetings.map((m, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-[var(--text-sm)]"
+        >
+          <CalendarX size={15} className="text-[var(--danger)]" />
+          Cancelled: {m.title}
         </div>
       ))}
 

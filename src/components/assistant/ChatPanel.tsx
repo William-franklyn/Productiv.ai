@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { Send } from "lucide-react";
+import { ExternalLink, Send } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ChatMessage } from "./ChatMessage";
 import { EmptyState } from "./EmptyState";
@@ -35,6 +35,15 @@ export function ChatPanel({ conversationId }: { conversationId: string }) {
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+      <div className="flex items-center justify-end border-b border-[var(--border)] px-4 py-2">
+        <button
+          onClick={() => window.open("/assistant", "_blank", "noopener,noreferrer")}
+          className="flex items-center gap-1.5 rounded-[var(--radius)] px-2 py-1 text-[var(--text-xs)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
+        >
+          <ExternalLink size={13} />
+          Open in new tab
+        </button>
+      </div>
       <div className="flex-1 overflow-y-auto p-6">
         {messages.length === 0 ? (
           <EmptyState onPick={submit} />
