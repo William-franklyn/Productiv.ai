@@ -16,7 +16,7 @@ export function ChatPanel({ conversationId }: { conversationId: string }) {
         body: { conversationId },
       }),
   );
-  const { messages, sendMessage, status } = useChat({ transport });
+  const { messages, sendMessage, status, error } = useChat({ transport });
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -41,6 +41,11 @@ export function ChatPanel({ conversationId }: { conversationId: string }) {
               <ChatMessage key={m.id} message={m} />
             ))}
           </div>
+        )}
+        {error && (
+          <p className="mx-auto max-w-2xl text-[var(--text-sm)] text-[var(--danger)]">
+            {error.message}
+          </p>
         )}
         <div ref={bottomRef} />
       </div>

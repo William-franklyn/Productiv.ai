@@ -23,6 +23,19 @@ export async function POST(req: NextRequest) {
 
   const supabase = await createClient();
 
+  const dailyLimit = Number(process.env.ASSISTANT_DAILY_LIMIT ?? 100);
+  const { error: limitError } = await supabase.rpc("increment_usage", {
+    daily_limit: dailyLimit,
+  });
+  if (limitError) {
+    return NextResponse.json(
+      {
+        error: `You've reached today's limit of ${dailyLimit} assistant messages. Try again tomorrow.`,
+      },
+      { status: 429 },
+    );
+  }
+
   const lastMessage = messages[messages.length - 1];
   if (lastMessage?.role === "user") {
     await supabase.from("messages").insert({
