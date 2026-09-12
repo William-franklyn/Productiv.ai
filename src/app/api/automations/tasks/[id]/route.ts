@@ -22,7 +22,8 @@ export async function PATCH(
   const { error } = await supabase
     .from("tasks")
     .update({ status: parsed.data.status })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("organization_id", auth.orgId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

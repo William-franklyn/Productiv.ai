@@ -16,13 +16,15 @@ interface MatchRow {
 }
 
 /**
- * Runs the query through `match_knowledge_chunks`, which is SECURITY INVOKER
- * and scopes to `current_org_id()` inside the SQL itself — so this must be
- * called with the caller's own session client (RLS-scoped), never the
- * admin client, or the permission boundary silently disappears.
+ * Runs the query through `match_knowledge_chunks`. The function checks
+ * `is_member_of(org_id)` internally and must be called with the caller's own
+ * session client (RLS-scoped), never the admin client, or that check runs as
+ * the wrong principal. `orgId` is the *active* workspace — required
+ * explicitly now that a user can belong to more than one.
  */
 export async function searchKnowledge(
   supabase: SupabaseClient,
+  orgId: string,
   query: string,
   matchCount = 8,
 ): Promise<RetrievedChunk[]> {
@@ -30,6 +32,7 @@ export async function searchKnowledge(
 
   const { data, error } = await supabase.rpc("match_knowledge_chunks", {
     query_embedding: embedding,
+    org_id: orgId,
     match_count: matchCount,
   });
   if (error) throw error;

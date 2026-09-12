@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
 
   const dailyLimit = Number(process.env.ASSISTANT_DAILY_LIMIT ?? 100);
   const { error: limitError } = await supabase.rpc("increment_usage", {
+    org_id: auth.orgId,
     daily_limit: dailyLimit,
   });
   if (limitError) {

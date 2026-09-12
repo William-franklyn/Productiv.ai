@@ -13,6 +13,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from("meetings")
     .select("id, title, starts_at, duration_minutes, notes, attendee_email")
+    .eq("organization_id", auth.orgId)
     .order("starts_at", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

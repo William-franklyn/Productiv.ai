@@ -5,15 +5,22 @@ import { Card } from "@/components/ui/Card";
 export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
-  const { fullName, orgName } = await requireAuth();
+  const { fullName, orgName, orgId } = await requireAuth();
   const supabase = await createClient();
 
   const [sources, conversations, openTasks] = await Promise.all([
-    supabase.from("knowledge_sources").select("id", { count: "exact", head: true }),
-    supabase.from("conversations").select("id", { count: "exact", head: true }),
+    supabase
+      .from("knowledge_sources")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId),
+    supabase
+      .from("conversations")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId),
     supabase
       .from("tasks")
       .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId)
       .eq("status", "open"),
   ]);
 

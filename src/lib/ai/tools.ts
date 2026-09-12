@@ -18,7 +18,7 @@ export function buildTools(ctx: {
         query: z.string().describe("The search query, in natural language"),
       }),
       execute: async ({ query }) => {
-        const chunks = await searchKnowledge(ctx.supabase, query);
+        const chunks = await searchKnowledge(ctx.supabase, ctx.orgId, query);
         if (chunks.length === 0) {
           return { found: false as const };
         }
@@ -127,6 +127,7 @@ export function buildTools(ctx: {
         const { data, error } = await ctx.supabase
           .from("meetings")
           .select("id, title, starts_at, duration_minutes, attendee_email")
+          .eq("organization_id", ctx.orgId)
           .gte("starts_at", new Date().toISOString())
           .order("starts_at", { ascending: true })
           .limit(20);
@@ -146,6 +147,7 @@ export function buildTools(ctx: {
         const { data, error } = await ctx.supabase
           .from("meetings")
           .select("id, title, starts_at, duration_minutes, notes, attendee_email")
+          .eq("organization_id", ctx.orgId)
           .ilike("title", `%${titleQuery}%`)
           .gte("starts_at", new Date().toISOString())
           .order("starts_at", { ascending: true });
@@ -162,7 +164,8 @@ export function buildTools(ctx: {
         const { error: deleteError } = await ctx.supabase
           .from("meetings")
           .delete()
-          .eq("id", meeting.id);
+          .eq("id", meeting.id)
+          .eq("organization_id", ctx.orgId);
         if (deleteError) return { ok: false as const, reason: "error" as const, error: deleteError.message };
 
         await logActivity(ctx.supabase, {

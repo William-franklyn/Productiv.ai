@@ -16,6 +16,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from("knowledge_sources")
     .select("id, name, mime_type, status, error, created_at")
+    .eq("organization_id", auth.orgId)
     .order("created_at", { ascending: false });
 
   if (error) {

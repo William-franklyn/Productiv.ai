@@ -10,6 +10,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from("tasks")
     .select("id, title, status, due_date, created_at")
+    .eq("organization_id", auth.orgId)
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

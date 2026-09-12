@@ -18,9 +18,14 @@ export async function DELETE(
     .from("meetings")
     .select("title, starts_at, duration_minutes, notes, attendee_email")
     .eq("id", id)
+    .eq("organization_id", auth.orgId)
     .single();
 
-  const { error } = await supabase.from("meetings").delete().eq("id", id);
+  const { error } = await supabase
+    .from("meetings")
+    .delete()
+    .eq("id", id)
+    .eq("organization_id", auth.orgId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   if (meeting) {

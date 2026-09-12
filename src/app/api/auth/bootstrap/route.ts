@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ACTIVE_ORG_COOKIE } from "@/lib/auth/guard";
 
 const bodySchema = z.object({
   fullName: z.string().min(1).max(120),
@@ -10,11 +12,11 @@ const bodySchema = z.object({
 });
 
 // Runs once, right after a client-side signUp. Creates the organization (or
-// redeems an invite into an existing one) and the profile row. This has to
-// happen with the service-role key: there is no insert policy on
-// `organizations` / `profiles` for the authenticated role by design, so a
-// user can never create a profile that points at an org they weren't
-// assigned to.
+// redeems an invite into an existing one) plus the profile row and the first
+// membership. This has to happen with the service-role key: there is no
+// insert policy on organizations/profiles/memberships for the authenticated
+// role by design, so a user can never grant themselves membership in
+// something the server didn't decide on.
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const {
@@ -33,12 +35,12 @@ export async function POST(req: NextRequest) {
 
   const admin = createAdminClient();
 
-  const { data: existing } = await admin
+  const { data: existingProfile } = await admin
     .from("profiles")
     .select("id")
     .eq("id", user.id)
     .maybeSingle();
-  if (existing) {
+  if (existingProfile) {
     return NextResponse.json({ error: "Already onboarded" }, { status: 409 });
   }
 
@@ -84,17 +86,23 @@ export async function POST(req: NextRequest) {
 
   const { error: profileError } = await admin.from("profiles").insert({
     id: user.id,
-    organization_id: organizationId,
     full_name: fullName,
+  });
+  if (profileError) {
+    return NextResponse.json({ error: "Could not create profile" }, { status: 500 });
+  }
+
+  const { error: membershipError } = await admin.from("memberships").insert({
+    user_id: user.id,
+    organization_id: organizationId,
     role,
   });
-
-  if (profileError) {
-    return NextResponse.json(
-      { error: "Could not create profile" },
-      { status: 500 },
-    );
+  if (membershipError) {
+    return NextResponse.json({ error: "Could not create membership" }, { status: 500 });
   }
+
+  const store = await cookies();
+  store.set(ACTIVE_ORG_COOKIE, organizationId, { path: "/", httpOnly: true, sameSite: "lax" });
 
   return NextResponse.json({ ok: true });
 }

@@ -4,10 +4,12 @@ import { z } from "zod";
 import { requireAuthApi } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/activity";
+import { sendWorkspaceInvite } from "@/lib/email/invite";
 
 const bodySchema = z.object({
   email: z.string().email(),
   role: z.enum(["admin", "member"]).default("member"),
+  message: z.string().max(500).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -31,10 +33,11 @@ export async function POST(req: NextRequest) {
       organization_id: auth.orgId,
       email: parsed.data.email,
       role: parsed.data.role,
+      message: parsed.data.message ?? null,
       token,
       created_by: auth.userId,
     })
-    .select("id, email, role, token, created_at")
+    .select("id, email, role, message, token, created_at")
     .single();
 
   if (error || !data) {
@@ -48,5 +51,13 @@ export async function POST(req: NextRequest) {
     detail: `Invited ${parsed.data.email}`,
   });
 
-  return NextResponse.json({ invite: data }, { status: 201 });
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const emailResult = await sendWorkspaceInvite({
+    to: parsed.data.email,
+    orgName: auth.orgName,
+    inviteUrl: `${appUrl}/invite/${token}`,
+    message: parsed.data.message,
+  });
+
+  return NextResponse.json({ invite: data, emailSent: emailResult.sent }, { status: 201 });
 }

@@ -10,6 +10,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from("activity_log")
     .select("id, action, detail, created_at, actor:profiles(full_name)")
+    .eq("organization_id", auth.orgId)
     .order("created_at", { ascending: false })
     .limit(100);
 

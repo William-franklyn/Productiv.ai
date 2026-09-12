@@ -9,14 +9,14 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { orgName, fullName, role, viewingAs } = await requireAuth();
+  const { orgId, orgName, fullName, role, viewingAs, memberships } = await requireAuth();
 
   return (
     <CommandPaletteProvider>
       <div className="flex min-h-screen flex-col">
         {viewingAs && <ViewAsBanner role={role} />}
         <div className="flex flex-1">
-          <Sidebar orgName={orgName} />
+          <Sidebar orgId={orgId} orgName={orgName} memberships={memberships} />
           <div className="flex flex-1 flex-col">
             <TopBar fullName={fullName} />
             <div className="flex-1">{children}</div>

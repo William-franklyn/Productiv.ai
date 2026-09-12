@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, Copy, UserPlus } from "lucide-react";
+import { Check, Copy, Mail, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
@@ -23,8 +23,10 @@ export function TeamManager() {
   const [members, setMembers] = useState<Member[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailStatus, setEmailStatus] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -44,25 +46,29 @@ export function TeamManager() {
     e.preventDefault();
     setPending(true);
     setError(null);
+    setEmailStatus(null);
 
     const res = await fetch("/api/team/invites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, role: "member" }),
+      body: JSON.stringify({ email, role: "member", message: message.trim() || undefined }),
     });
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       setError(body.error ?? "Could not send invite");
     } else {
+      const body = await res.json();
+      setEmailStatus(body.emailSent ? `Emailed ${email}` : "Invite created — copy the link below to share it");
       setEmail("");
+      setMessage("");
       refresh();
     }
     setPending(false);
   }
 
   function copyLink(invite: Invite) {
-    const url = `${window.location.origin}/signup?invite=${invite.token}`;
+    const url = `${window.location.origin}/invite/${invite.token}`;
     navigator.clipboard.writeText(url);
     setCopiedId(invite.id);
     setTimeout(() => setCopiedId(null), 1500);
@@ -75,21 +81,33 @@ export function TeamManager() {
         Invite teammates into this workspace.
       </p>
 
-      <form onSubmit={onInvite} className="mt-6 flex gap-2">
+      <form onSubmit={onInvite} className="mt-6 flex flex-col gap-2 max-w-sm">
         <input
           required
           type="email"
           placeholder="teammate@company.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="h-10 flex-1 max-w-xs rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
+          className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
         />
-        <Button type="submit" disabled={pending}>
+        <input
+          placeholder="Add a personal note (optional)"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3 text-[var(--text-sm)]"
+        />
+        <Button type="submit" disabled={pending} className="w-fit">
           <UserPlus size={16} />
           Invite
         </Button>
       </form>
       {error && <p className="mt-2 text-[var(--text-sm)] text-[var(--danger)]">{error}</p>}
+      {emailStatus && (
+        <p className="mt-2 flex items-center gap-1.5 text-[var(--text-sm)] text-[var(--success)]">
+          <Mail size={13} />
+          {emailStatus}
+        </p>
+      )}
 
       <h2 className="mt-8 text-[var(--text-sm)] font-medium text-[var(--muted)]">
         Members

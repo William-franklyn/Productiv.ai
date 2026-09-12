@@ -8,14 +8,24 @@ export async function GET() {
 
   const supabase = await createClient();
 
-  const [{ data: members }, { data: invites }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name, role").order("created_at"),
+  const [{ data: membershipRows }, { data: invites }] = await Promise.all([
+    supabase
+      .from("memberships")
+      .select("role, created_at, profiles(id, full_name)")
+      .eq("organization_id", auth.orgId)
+      .order("created_at"),
     supabase
       .from("org_invites")
       .select("id, email, role, token, created_at")
+      .eq("organization_id", auth.orgId)
       .is("redeemed_at", null)
       .order("created_at", { ascending: false }),
   ]);
 
-  return NextResponse.json({ members: members ?? [], invites: invites ?? [] });
+  const members = (membershipRows ?? []).map((row) => {
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return { id: profile?.id, full_name: profile?.full_name ?? null, role: row.role };
+  });
+
+  return NextResponse.json({ members, invites: invites ?? [] });
 }
