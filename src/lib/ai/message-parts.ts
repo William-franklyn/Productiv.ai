@@ -165,6 +165,29 @@ export function getAccessChanges(message: UIMessage) {
   return changes;
 }
 
+export function getCreatedForms(message: UIMessage) {
+  const forms: { formId: string; title: string; publicUrl: string; published: boolean }[] = [];
+  for (const part of message.parts) {
+    if (part.type !== "tool-create_form" || !isOutputAvailable(part)) continue;
+    const output = part.output as {
+      ok: boolean;
+      formId?: string;
+      title?: string;
+      publicUrl?: string;
+      published?: boolean;
+    };
+    if (output.ok && output.formId && output.title && output.publicUrl) {
+      forms.push({
+        formId: output.formId,
+        title: output.title,
+        publicUrl: output.publicUrl,
+        published: output.published ?? true,
+      });
+    }
+  }
+  return forms;
+}
+
 export function getText(message: UIMessage): string {
   return message.parts
     .filter((p): p is Extract<AnyPart, { type: "text" }> => p.type === "text")
@@ -183,6 +206,8 @@ export function isToolPending(message: UIMessage): string | null {
     "tool-draft_email": "Drafting email…",
     "tool-analyze_data": "Crunching numbers…",
     "tool-restrict_source_access": "Updating access…",
+    "tool-create_form": "Building form…",
+    "tool-list_form_responses": "Fetching responses…",
   };
   for (const part of message.parts) {
     if (part.type in labels && !isOutputAvailable(part)) {

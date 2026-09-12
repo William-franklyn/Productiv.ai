@@ -6,6 +6,7 @@ import { logActivity } from "@/lib/activity";
 import { sendMeetingInvite, sendMeetingCancellation } from "@/lib/email/meeting-invite";
 import { summarizeDataset, groupByAggregate, type Aggregate } from "@/lib/knowledge/analyze";
 import type { Dataset } from "@/lib/knowledge/tabular";
+import type { FormField } from "@/lib/forms/types";
 
 export function buildTools(ctx: {
   supabase: SupabaseClient;
@@ -381,6 +382,117 @@ export function buildTools(ctx: {
         });
 
         return { ok: true as const, sourceName: source.name, restrictedCount: matchedUserIds.length };
+      },
+    }),
+
+    create_form: tool({
+      description:
+        "Create a form with the given questions and publish it so it's ready to share. Use this when the user asks to create, build, or make a form or survey.",
+      inputSchema: z.object({
+        title: z.string(),
+        description: z.string().optional(),
+        fields: z
+          .array(
+            z.object({
+              label: z.string(),
+              type: z.enum(["text", "textarea", "number", "email", "select", "checkbox", "date"]),
+              required: z.boolean().optional(),
+              options: z.array(z.string()).optional().describe("Choices, only for type 'select'"),
+            }),
+          )
+          .describe("The questions on the form, in order"),
+        publish: z.boolean().optional().describe("Defaults to true — false creates it as an unpublished draft"),
+      }),
+      execute: async ({ title, description, fields, publish }) => {
+        const formFields: FormField[] = fields.map((f) => ({
+          id: crypto.randomUUID(),
+          label: f.label,
+          type: f.type,
+          required: f.required ?? false,
+          options: f.options,
+        }));
+
+        const { data, error } = await ctx.supabase
+          .from("forms")
+          .insert({
+            organization_id: ctx.orgId,
+            created_by: ctx.userId,
+            title,
+            description: description ?? null,
+            fields: formFields,
+            status: publish === false ? "draft" : "published",
+          })
+          .select("id")
+          .single();
+
+        if (error) return { ok: false as const, error: error.message };
+
+        await logActivity(ctx.supabase, {
+          organizationId: ctx.orgId,
+          actorId: ctx.userId,
+          action: "created_form",
+          detail: `Assistant created form: ${title}`,
+        });
+
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+        return {
+          ok: true as const,
+          formId: data.id,
+          title,
+          published: publish !== false,
+          publicUrl: `${appUrl}/f/${data.id}`,
+        };
+      },
+    }),
+
+    list_form_responses: tool({
+      description: "Look up responses submitted to a form the user has created.",
+      inputSchema: z.object({
+        formName: z.string().describe("Name (or partial name) of the form"),
+      }),
+      execute: async ({ formName }) => {
+        const { data: matches, error } = await ctx.supabase
+          .from("forms")
+          .select("id, title, fields")
+          .eq("organization_id", ctx.orgId)
+          .ilike("title", `%${formName}%`);
+
+        if (error) return { ok: false as const, reason: "error" as const, error: error.message };
+        if (!matches || matches.length === 0) return { ok: false as const, reason: "not_found" as const };
+        if (matches.length > 1) {
+          return {
+            ok: false as const,
+            reason: "ambiguous" as const,
+            candidates: matches.map((m) => m.title),
+          };
+        }
+
+        const form = matches[0];
+        const fields = form.fields as FormField[];
+        const labelById = new Map(fields.map((f) => [f.id, f.label]));
+
+        const { data: responses } = await ctx.supabase
+          .from("form_responses")
+          .select("answers, submitted_at")
+          .eq("form_id", form.id)
+          .order("submitted_at", { ascending: false })
+          .limit(20);
+
+        const readable = (responses ?? []).map((r) => {
+          const answers = r.answers as Record<string, string | number | boolean>;
+          const named: Record<string, string | number | boolean> = {};
+          for (const [fieldId, value] of Object.entries(answers)) {
+            named[labelById.get(fieldId) ?? fieldId] = value;
+          }
+          return { submittedAt: r.submitted_at, answers: named };
+        });
+
+        return {
+          ok: true as const,
+          formTitle: form.title,
+          responseCount: readable.length,
+          responses: readable,
+        };
       },
     }),
 

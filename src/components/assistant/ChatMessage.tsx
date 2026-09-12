@@ -1,5 +1,16 @@
 import type { UIMessage } from "ai";
-import { BarChart3, CalendarCheck, CalendarX, FileText, ListTodo, Loader2, Mail, ShieldOff } from "lucide-react";
+import {
+  BarChart3,
+  CalendarCheck,
+  CalendarX,
+  ClipboardList,
+  ExternalLink,
+  FileText,
+  ListTodo,
+  Loader2,
+  Mail,
+  ShieldOff,
+} from "lucide-react";
 import clsx from "clsx";
 import { ChartRenderer } from "@/components/charts/ChartRenderer";
 import { ConfidenceBadge } from "./ConfidenceBadge";
@@ -8,6 +19,7 @@ import {
   getCancelledMeetings,
   getChart,
   getCitations,
+  getCreatedForms,
   getCreatedTasks,
   getDataAnalysis,
   getEmailDraft,
@@ -33,6 +45,7 @@ export function ChatMessage({
   const emailDraft = isUser ? null : getEmailDraft(message);
   const analyses = isUser ? [] : getDataAnalysis(message);
   const accessChanges = isUser ? [] : getAccessChanges(message);
+  const createdForms = isUser ? [] : getCreatedForms(message);
   const pending = isUser ? null : isToolPending(message);
 
   if (isUser) {
@@ -110,6 +123,20 @@ export function ChatMessage({
           <BarChart3 size={15} className="text-[var(--accent)]" />
           Analyzed {a.sourceName} · {a.rowCount} rows
         </div>
+      ))}
+
+      {createdForms.map((f) => (
+        <a
+          key={f.formId}
+          href={f.publicUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-[var(--text-sm)] hover:bg-[var(--accent-soft)]"
+        >
+          <ClipboardList size={15} className="text-[var(--accent)]" />
+          <span className="flex-1 truncate">Created form: {f.title}</span>
+          <ExternalLink size={13} className="text-[var(--muted)]" />
+        </a>
       ))}
 
       {accessChanges.map((a, i) => (

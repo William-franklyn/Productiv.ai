@@ -3,6 +3,7 @@ import {
   MessagesSquare,
   BookOpen,
   Zap,
+  ClipboardList,
   Users,
   Settings,
   type LucideIcon,
@@ -19,6 +20,7 @@ export const navItems: NavItem[] = [
   { label: "Assistant", href: "/assistant", icon: MessagesSquare },
   { label: "Knowledge", href: "/knowledge", icon: BookOpen },
   { label: "Automations", href: "/automations", icon: Zap },
+  { label: "Forms", href: "/forms", icon: ClipboardList },
   { label: "Team", href: "/team", icon: Users },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
