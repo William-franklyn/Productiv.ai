@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ModeSelector } from "./ModeSelector";
 import { ChatMessageRow, type DisplayMessage } from "./ChatMessageRow";
@@ -148,11 +148,20 @@ function ChatSurfaceInner({
       <div className="flex flex-1 flex-col">
         <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-3">
           <h1 className="text-[var(--text-base)] font-medium">{conversation.title}</h1>
-          <ModeSelector
-            mode={conversation.mode}
-            locked={messages.length > 0}
-            onChange={onModeChange}
-          />
+          <div className="flex items-center gap-3">
+            <ModeSelector
+              mode={conversation.mode}
+              locked={messages.length > 0}
+              onChange={onModeChange}
+            />
+            <button
+              onClick={() => window.open("/chat", "_blank", "noopener,noreferrer")}
+              className="flex items-center gap-1.5 rounded-[var(--radius)] px-2 py-1 text-[var(--text-xs)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
+            >
+              <ExternalLink size={13} />
+              Open in new tab
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
