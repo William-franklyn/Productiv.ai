@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Mail, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
@@ -11,6 +11,7 @@ interface Meeting {
   starts_at: string;
   duration_minutes: number;
   notes: string | null;
+  attendee_email: string | null;
 }
 
 export function MeetingsList() {
@@ -19,6 +20,7 @@ export function MeetingsList() {
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
   const [startsAt, setStartsAt] = useState("");
+  const [attendeeEmail, setAttendeeEmail] = useState("");
 
   const refresh = useCallback(async () => {
     const res = await fetch("/api/meetings");
@@ -40,10 +42,15 @@ export function MeetingsList() {
     await fetch("/api/meetings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, startsAt: new Date(startsAt).toISOString() }),
+      body: JSON.stringify({
+        title,
+        startsAt: new Date(startsAt).toISOString(),
+        attendeeEmail: attendeeEmail.trim() || undefined,
+      }),
     });
     setTitle("");
     setStartsAt("");
+    setAttendeeEmail("");
     setShowForm(false);
     refresh();
   }
@@ -79,6 +86,13 @@ export function MeetingsList() {
             onChange={(e) => setStartsAt(e.target.value)}
             className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3 text-[var(--text-sm)]"
           />
+          <input
+            type="email"
+            placeholder="Invite an email (optional)"
+            value={attendeeEmail}
+            onChange={(e) => setAttendeeEmail(e.target.value)}
+            className="h-9 min-w-[180px] rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3 text-[var(--text-sm)]"
+          />
           <Button type="submit" size="sm">Add</Button>
         </form>
       )}
@@ -94,8 +108,14 @@ export function MeetingsList() {
           <Card key={m.id} className="flex items-center gap-3 p-3.5">
             <div className="flex-1">
               <p className="text-[var(--text-sm)]">{m.title}</p>
-              <p className="text-[var(--text-xs)] text-[var(--muted)]">
+              <p className="flex items-center gap-1.5 text-[var(--text-xs)] text-[var(--muted)]">
                 {new Date(m.starts_at).toLocaleString()} · {m.duration_minutes} min
+                {m.attendee_email && (
+                  <span className="flex items-center gap-1">
+                    <Mail size={11} />
+                    {m.attendee_email}
+                  </span>
+                )}
               </p>
             </div>
             <button

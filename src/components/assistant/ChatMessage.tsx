@@ -1,5 +1,5 @@
 import type { UIMessage } from "ai";
-import { CalendarCheck, CalendarX, FileText, ListTodo, Loader2 } from "lucide-react";
+import { CalendarCheck, CalendarX, FileText, ListTodo, Loader2, Mail } from "lucide-react";
 import clsx from "clsx";
 import { ChartRenderer } from "@/components/charts/ChartRenderer";
 import { ConfidenceBadge } from "./ConfidenceBadge";
@@ -63,10 +63,20 @@ export function ChatMessage({ message }: { message: UIMessage }) {
       {scheduledMeetings.map((m, i) => (
         <div
           key={i}
-          className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-[var(--text-sm)]"
+          className="flex flex-col gap-1 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-[var(--text-sm)]"
         >
-          <CalendarCheck size={15} className="text-[var(--accent)]" />
-          Scheduled: {m.title} · {new Date(m.startsAt).toLocaleString()}
+          <div className="flex items-center gap-2">
+            <CalendarCheck size={15} className="text-[var(--accent)]" />
+            Scheduled: {m.title} · {new Date(m.startsAt).toLocaleString()}
+          </div>
+          {m.attendeeEmail && (
+            <div className="ml-[23px] flex items-center gap-1.5 text-[var(--text-xs)] text-[var(--muted)]">
+              <Mail size={11} />
+              {m.emailSent
+                ? `Invite emailed to ${m.attendeeEmail}`
+                : `Could not email ${m.attendeeEmail} — check RESEND_API_KEY`}
+            </div>
+          )}
         </div>
       ))}
 

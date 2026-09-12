@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { searchKnowledge } from "@/lib/knowledge/retrieval";
 import { logActivity } from "@/lib/activity";
+import { sendMeetingInvite, sendMeetingCancellation } from "@/lib/email/meeting-invite";
 
 export function buildTools(ctx: {
   supabase: SupabaseClient;
@@ -69,14 +70,16 @@ export function buildTools(ctx: {
 
     schedule_meeting: tool({
       description:
-        "Schedule a meeting for the team, at a specific date and time.",
+        "Schedule a meeting for the team, at a specific date and time. If the user gives an external attendee's email, invite them — they'll get an actual calendar invite by email.",
       inputSchema: z.object({
         title: z.string(),
         startsAt: z.string().describe("ISO 8601 date-time, e.g. 2026-09-20T14:00:00"),
         durationMinutes: z.number().optional().describe("Defaults to 30 if not given"),
         notes: z.string().optional(),
+        attendeeEmail: z.string().email().optional().describe("External attendee to email an invite to, if given"),
       }),
-      execute: async ({ title, startsAt, durationMinutes, notes }) => {
+      execute: async ({ title, startsAt, durationMinutes, notes, attendeeEmail }) => {
+        const duration = durationMinutes ?? 30;
         const { data, error } = await ctx.supabase
           .from("meetings")
           .insert({
@@ -84,8 +87,9 @@ export function buildTools(ctx: {
             created_by: ctx.userId,
             title,
             starts_at: startsAt,
-            duration_minutes: durationMinutes ?? 30,
+            duration_minutes: duration,
             notes: notes ?? null,
+            attendee_email: attendeeEmail ?? null,
           })
           .select("id")
           .single();
@@ -99,7 +103,20 @@ export function buildTools(ctx: {
           detail: `Assistant scheduled meeting: ${title}`,
         });
 
-        return { ok: true as const, meetingId: data.id, title, startsAt };
+        let emailSent = false;
+        if (attendeeEmail) {
+          const result = await sendMeetingInvite({
+            meetingId: data.id,
+            title,
+            startsAt,
+            durationMinutes: duration,
+            notes,
+            attendeeEmail,
+          });
+          emailSent = result.sent;
+        }
+
+        return { ok: true as const, meetingId: data.id, title, startsAt, attendeeEmail, emailSent };
       },
     }),
 
@@ -109,7 +126,7 @@ export function buildTools(ctx: {
       execute: async () => {
         const { data, error } = await ctx.supabase
           .from("meetings")
-          .select("id, title, starts_at, duration_minutes")
+          .select("id, title, starts_at, duration_minutes, attendee_email")
           .gte("starts_at", new Date().toISOString())
           .order("starts_at", { ascending: true })
           .limit(20);
@@ -128,7 +145,7 @@ export function buildTools(ctx: {
       execute: async ({ titleQuery }) => {
         const { data, error } = await ctx.supabase
           .from("meetings")
-          .select("id, title, starts_at")
+          .select("id, title, starts_at, duration_minutes, notes, attendee_email")
           .ilike("title", `%${titleQuery}%`)
           .gte("starts_at", new Date().toISOString())
           .order("starts_at", { ascending: true });
@@ -154,6 +171,17 @@ export function buildTools(ctx: {
           action: "cancelled_meeting",
           detail: `Assistant cancelled meeting: ${meeting.title}`,
         });
+
+        if (meeting.attendee_email) {
+          await sendMeetingCancellation({
+            meetingId: meeting.id,
+            title: meeting.title,
+            startsAt: meeting.starts_at,
+            durationMinutes: meeting.duration_minutes,
+            notes: meeting.notes,
+            attendeeEmail: meeting.attendee_email,
+          });
+        }
 
         return { ok: true as const, title: meeting.title };
       },

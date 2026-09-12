@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireAuthApi } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/activity";
+import { sendMeetingInvite } from "@/lib/email/meeting-invite";
 
 export async function GET() {
   const auth = await requireAuthApi();
@@ -11,7 +12,7 @@ export async function GET() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("meetings")
-    .select("id, title, starts_at, duration_minutes, notes")
+    .select("id, title, starts_at, duration_minutes, notes, attendee_email")
     .order("starts_at", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -23,6 +24,7 @@ const bodySchema = z.object({
   startsAt: z.string(),
   durationMinutes: z.number().min(5).max(480).default(30),
   notes: z.string().max(2000).optional(),
+  attendeeEmail: z.string().email().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -44,6 +46,7 @@ export async function POST(req: NextRequest) {
       starts_at: parsed.data.startsAt,
       duration_minutes: parsed.data.durationMinutes,
       notes: parsed.data.notes ?? null,
+      attendee_email: parsed.data.attendeeEmail ?? null,
     })
     .select("id")
     .single();
@@ -58,6 +61,17 @@ export async function POST(req: NextRequest) {
     action: "scheduled_meeting",
     detail: `Scheduled meeting: ${parsed.data.title}`,
   });
+
+  if (parsed.data.attendeeEmail) {
+    await sendMeetingInvite({
+      meetingId: data.id,
+      title: parsed.data.title,
+      startsAt: parsed.data.startsAt,
+      durationMinutes: parsed.data.durationMinutes,
+      notes: parsed.data.notes,
+      attendeeEmail: parsed.data.attendeeEmail,
+    });
+  }
 
   return NextResponse.json({ id: data.id }, { status: 201 });
 }

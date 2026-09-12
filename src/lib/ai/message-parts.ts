@@ -77,12 +77,23 @@ export function getCreatedTasks(message: UIMessage) {
 }
 
 export function getScheduledMeetings(message: UIMessage) {
-  const meetings: { title: string; startsAt: string }[] = [];
+  const meetings: { title: string; startsAt: string; attendeeEmail?: string; emailSent?: boolean }[] = [];
   for (const part of message.parts) {
     if (part.type !== "tool-schedule_meeting" || !isOutputAvailable(part)) continue;
-    const output = part.output as { ok: boolean; title?: string; startsAt?: string };
+    const output = part.output as {
+      ok: boolean;
+      title?: string;
+      startsAt?: string;
+      attendeeEmail?: string;
+      emailSent?: boolean;
+    };
     if (output.ok && output.title && output.startsAt) {
-      meetings.push({ title: output.title, startsAt: output.startsAt });
+      meetings.push({
+        title: output.title,
+        startsAt: output.startsAt,
+        attendeeEmail: output.attendeeEmail,
+        emailSent: output.emailSent,
+      });
     }
   }
   return meetings;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuthApi } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/activity";
+import { sendMeetingCancellation } from "@/lib/email/meeting-invite";
 
 export async function DELETE(
   _req: NextRequest,
@@ -15,7 +16,7 @@ export async function DELETE(
 
   const { data: meeting } = await supabase
     .from("meetings")
-    .select("title")
+    .select("title, starts_at, duration_minutes, notes, attendee_email")
     .eq("id", id)
     .single();
 
@@ -29,6 +30,17 @@ export async function DELETE(
       action: "cancelled_meeting",
       detail: `Cancelled meeting: ${meeting.title}`,
     });
+
+    if (meeting.attendee_email) {
+      await sendMeetingCancellation({
+        meetingId: id,
+        title: meeting.title,
+        startsAt: meeting.starts_at,
+        durationMinutes: meeting.duration_minutes,
+        notes: meeting.notes,
+        attendeeEmail: meeting.attendee_email,
+      });
+    }
   }
 
   return NextResponse.json({ ok: true });

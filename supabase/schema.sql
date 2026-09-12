@@ -429,3 +429,11 @@ create policy "members manage own organization meetings"
   on meetings for all
   using (organization_id = current_org_id())
   with check (organization_id = current_org_id());
+
+-- ============================================================================
+-- 010_meeting_attendee.sql
+-- One optional external attendee per meeting, for calendar invites.
+-- ============================================================================
+
+alter table meetings
+  add column attendee_email text;

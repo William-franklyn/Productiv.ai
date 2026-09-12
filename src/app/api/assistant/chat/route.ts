@@ -16,7 +16,7 @@ function systemPrompt() {
 - search_knowledge: look up passages from the team's uploaded documents. Use it before answering anything that could be grounded in their knowledge base, and say plainly when it finds nothing rather than guessing.
 - create_task: create a to-do for the team when the user asks you to track an action item.
 - generate_chart: render a bar chart, line chart, or single stat tile when the user asks to visualize, chart, plot, or break down numbers — including numbers they just gave you in the conversation.
-- schedule_meeting: schedule a meeting when the user gives you a title and a time. Resolve relative dates yourself using today's date above — only ask if the time itself is genuinely missing or ambiguous.
+- schedule_meeting: schedule a meeting when the user gives you a title and a time. Resolve relative dates yourself using today's date above — only ask if the time itself is genuinely missing or ambiguous. If they give you an external person's email, pass it as attendeeEmail — that person gets an actual calendar invite by email, so only do this when an email address was actually given, never invent one.
 - list_meetings: list upcoming meetings when asked what's scheduled.
 - cancel_meeting: cancel a meeting by matching its title. If it comes back ambiguous (multiple matches) or not found, tell the user what matched (or didn't) and ask them to be more specific rather than picking one yourself.
 
