@@ -1,12 +1,11 @@
-import { ComingSoon } from "@/components/shell/ComingSoon";
+import { KnowledgeManager } from "@/components/knowledge/KnowledgeManager";
 
 export const metadata = { title: "Knowledge" };
 
 export default function KnowledgePage() {
   return (
-    <ComingSoon
-      title="Knowledge"
-      body="Upload documents here to make them askable in the assistant, with answers citing the exact source."
-    />
+    <main className="p-8">
+      <KnowledgeManager />
+    </main>
   );
 }
