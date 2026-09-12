@@ -1,12 +1,11 @@
-import { ComingSoon } from "@/components/shell/ComingSoon";
+import { TeamManager } from "@/components/team/TeamManager";
 
 export const metadata = { title: "Team" };
 
 export default function TeamPage() {
   return (
-    <ComingSoon
-      title="Team"
-      body="Invite teammates into this workspace and manage roles here."
-    />
+    <main className="p-8">
+      <TeamManager />
+    </main>
   );
 }
