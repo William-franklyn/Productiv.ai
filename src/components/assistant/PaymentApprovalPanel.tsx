@@ -1,75 +1,77 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Mail, Send, Trash2, X } from "lucide-react";
+import { CircleDollarSign, Loader2, Send, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
-interface Draft {
+interface Payment {
   id: string;
-  to_email: string;
-  subject: string;
-  body: string;
+  vendor_name: string;
+  amount: number;
+  description: string | null;
   status: "pending" | "sent" | "discarded";
 }
 
-export function EmailDraftPanel({
-  draftId,
+export function PaymentApprovalPanel({
+  paymentId,
   onClose,
 }: {
-  draftId: string;
+  paymentId: string;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState<Draft | null>(null);
-  const [to, setTo] = useState("");
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
+  const [payment, setPayment] = useState<Payment | null>(null);
+  const [vendorName, setVendorName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setDraft(null);
+    setPayment(null);
     setError(null);
-    fetch(`/api/email-drafts/${draftId}`)
+    fetch(`/api/payments/${paymentId}`)
       .then((res) => res.json())
       .then((data) => {
-        if (!data.draft) return;
-        setDraft(data.draft);
-        setTo(data.draft.to_email);
-        setSubject(data.draft.subject);
-        setBody(data.draft.body);
+        if (!data.payment) return;
+        setPayment(data.payment);
+        setVendorName(data.payment.vendor_name);
+        setAmount(String(data.payment.amount));
+        setDescription(data.payment.description ?? "");
       });
-  }, [draftId]);
+  }, [paymentId]);
 
   async function send() {
     setBusy(true);
     setError(null);
-    const res = await fetch(`/api/email-drafts/${draftId}/send`, {
+    const res = await fetch(`/api/payments/${paymentId}/send`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to, subject, body }),
+      body: JSON.stringify({ vendorName, amount: Number(amount), description: description || undefined }),
     });
     setBusy(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "Could not send email");
+      setError(data.error ?? "Could not send payment");
       return;
     }
-    setDraft((prev) => (prev ? { ...prev, status: "sent" } : prev));
+    setPayment((prev) => (prev ? { ...prev, status: "sent" } : prev));
   }
 
   async function discard() {
     setBusy(true);
-    await fetch(`/api/email-drafts/${draftId}`, { method: "DELETE" });
+    await fetch(`/api/payments/${paymentId}`, { method: "DELETE" });
     setBusy(false);
     onClose();
   }
+
+  const amountValid = Number(amount) > 0;
 
   return (
     <aside className="flex h-screen w-96 shrink-0 flex-col border-l border-[var(--border)] bg-[var(--surface)]">
       <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
         <div className="flex items-center gap-2 text-[var(--text-sm)] font-medium">
-          <Mail size={15} className="text-[var(--accent)]" />
-          Email draft
+          <CircleDollarSign size={15} className="text-[var(--accent)]" />
+          Payment
         </div>
         <button
           onClick={onClose}
@@ -80,49 +82,56 @@ export function EmailDraftPanel({
         </button>
       </div>
 
-      {!draft ? (
+      {!payment ? (
         <div className="flex flex-1 items-center justify-center text-[var(--muted)]">
           <Loader2 size={18} className="animate-spin" />
         </div>
-      ) : draft.status === "sent" ? (
+      ) : payment.status === "sent" ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center">
           <Send size={20} className="text-[var(--success)]" />
-          <p className="text-[var(--text-sm)] text-[var(--muted)]">Sent to {to}</p>
+          <p className="text-[var(--text-sm)] text-[var(--muted)]">
+            Paid {vendorName} ${Number(amount).toFixed(2)}
+          </p>
         </div>
       ) : (
         <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
+          <p className="text-[var(--text-xs)] text-[var(--muted)]">
+            This creates a real transaction on the connected sandbox account — review before sending.
+          </p>
           <label className="flex flex-col gap-1 text-[var(--text-xs)] text-[var(--muted)]">
-            To
+            Vendor
             <input
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              placeholder="name@example.com"
+              value={vendorName}
+              onChange={(e) => setVendorName(e.target.value)}
               className="h-9 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg)] px-2.5 text-[var(--text-sm)] text-[var(--ink)]"
             />
           </label>
           <label className="flex flex-col gap-1 text-[var(--text-xs)] text-[var(--muted)]">
-            Subject
+            Amount (USD)
             <input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               className="h-9 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg)] px-2.5 text-[var(--text-sm)] text-[var(--ink)]"
             />
           </label>
-          <label className="flex flex-1 flex-col gap-1 text-[var(--text-xs)] text-[var(--muted)]">
-            Body
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              className="min-h-[16rem] flex-1 resize-none rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg)] p-2.5 text-[var(--text-sm)] text-[var(--ink)]"
+          <label className="flex flex-col gap-1 text-[var(--text-xs)] text-[var(--muted)]">
+            Memo (optional)
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="h-9 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg)] px-2.5 text-[var(--text-sm)] text-[var(--ink)]"
             />
           </label>
 
           {error && <p className="text-[var(--text-xs)] text-[var(--danger)]">{error}</p>}
 
           <div className="flex gap-2 pt-1">
-            <Button onClick={send} disabled={busy || !to.trim() || !subject.trim() || !body.trim()}>
+            <Button onClick={send} disabled={busy || !vendorName.trim() || !amountValid}>
               {busy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-              Send
+              Send payment
             </Button>
             <button
               onClick={discard}

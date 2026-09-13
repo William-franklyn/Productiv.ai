@@ -95,7 +95,7 @@ function WorkspaceSwitcher({
 
       {open && (
         <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg">
-          <div className="px-2 py-1 text-[var(--text-2xs)] font-medium uppercase tracking-wide text-[var(--muted)]">
+          <div className="px-2 py-1 text-[var(--text-xs)] font-medium uppercase tracking-wide text-[var(--muted)]">
             Workspaces
           </div>
           {memberships.map((m) => (
@@ -120,12 +120,12 @@ function WorkspaceSwitcher({
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && createWorkspace()}
                 placeholder="Workspace name"
-                className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-1 text-[var(--text-sm)]"
+                className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg)] px-2 py-1 text-[var(--text-sm)]"
               />
               <button
                 onClick={createWorkspace}
                 disabled={busy || !newName.trim()}
-                className="rounded-[var(--radius-sm)] bg-[var(--accent-solid)] px-2 py-1 text-[var(--text-sm)] font-medium text-[var(--accent-solid-fg)] disabled:opacity-60"
+                className="rounded-[var(--radius-sm)] bg-[var(--accent)] px-2 py-1 text-[var(--text-sm)] font-medium text-[var(--accent-ink)] disabled:opacity-60"
               >
                 Create
               </button>

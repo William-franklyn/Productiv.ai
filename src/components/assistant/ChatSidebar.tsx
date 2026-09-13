@@ -43,7 +43,7 @@ export function ChatSidebar() {
       </button>
 
       <div className="mt-4 flex-1 overflow-y-auto">
-        <div className="px-2 text-[var(--text-2xs)] font-medium uppercase tracking-wide text-[var(--muted)]">
+        <div className="px-2 text-[var(--text-xs)] font-medium uppercase tracking-wide text-[var(--muted)]">
           History
         </div>
         <div className="mt-1 flex flex-col gap-0.5">

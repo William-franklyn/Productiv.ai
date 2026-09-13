@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import type { UIMessage } from "ai";
@@ -10,9 +10,14 @@ export function AssistantContainer({ conversationId }: { conversationId?: string
   const router = useRouter();
   const searchParams = useSearchParams();
   const [messages, setMessages] = useState<UIMessage[] | null>(null);
+  const hasCreatedRef = useRef(false);
 
   useEffect(() => {
     if (!conversationId) {
+      // React Strict Mode double-invokes effects in dev — without this guard
+      // that means two conversations get created for one page load.
+      if (hasCreatedRef.current) return;
+      hasCreatedRef.current = true;
       const query = searchParams.toString();
       fetch("/api/assistant/conversations", { method: "POST" })
         .then((res) => res.json())

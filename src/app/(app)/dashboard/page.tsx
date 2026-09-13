@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarClock, ListTodo } from "lucide-react";
 import { requireAuth } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
+import { getAccount } from "@/lib/nessie/client";
 import { Card } from "@/components/ui/Card";
 
 export const metadata = { title: "Dashboard" };
@@ -10,7 +11,7 @@ export default async function DashboardPage() {
   const { fullName, orgName, orgId, userId } = await requireAuth();
   const supabase = await createClient();
 
-  const [sources, conversations, openTasks, upcomingMeetings, myTasks] = await Promise.all([
+  const [sources, conversations, openTasks, upcomingMeetings, myTasks, financeConnection] = await Promise.all([
     supabase
       .from("knowledge_sources")
       .select("id", { count: "exact", head: true })
@@ -39,12 +40,28 @@ export default async function DashboardPage() {
       .eq("status", "open")
       .order("due_date", { ascending: true, nullsFirst: false })
       .limit(5),
+    supabase
+      .from("nessie_connections")
+      .select("account_id, nickname")
+      .eq("organization_id", orgId)
+      .maybeSingle(),
   ]);
+
+  let balance: { nickname: string; amount: number } | null = null;
+  if (financeConnection.data) {
+    try {
+      const account = await getAccount(financeConnection.data.account_id);
+      balance = { nickname: financeConnection.data.nickname, amount: account.balance };
+    } catch {
+      // Nessie unreachable — just omit the widget rather than break the page.
+    }
+  }
 
   const stats = [
     { label: "Knowledge sources", value: sources.count ?? 0 },
     { label: "Conversations", value: conversations.count ?? 0 },
     { label: "Open tasks", value: openTasks.count ?? 0 },
+    ...(balance ? [{ label: balance.nickname, value: `$${balance.amount.toFixed(2)}` }] : []),
   ];
 
   return (
@@ -54,7 +71,7 @@ export default async function DashboardPage() {
       </h1>
       <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">{orgName}</p>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
           <Card key={s.label} className="p-5">
             <p className="text-[var(--text-sm)] text-[var(--muted)]">{s.label}</p>

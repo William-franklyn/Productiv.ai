@@ -88,14 +88,14 @@ export function PublicFormFill({ formId }: { formId: string }) {
                   required={field.required}
                   rows={3}
                   onChange={(e) => setAnswers((a) => ({ ...a, [field.id]: e.target.value }))}
-                  className="resize-none rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-primary)] p-2.5"
+                  className="resize-none rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] p-2.5"
                 />
               ) : field.type === "select" ? (
                 <select
                   required={field.required}
                   defaultValue=""
                   onChange={(e) => setAnswers((a) => ({ ...a, [field.id]: e.target.value }))}
-                  className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-primary)] px-2.5"
+                  className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-2.5"
                 >
                   <option value="" disabled>
                     Select…
@@ -122,7 +122,7 @@ export function PublicFormFill({ formId }: { formId: string }) {
                       [field.id]: field.type === "number" ? Number(e.target.value) : e.target.value,
                     }))
                   }
-                  className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-primary)] px-3"
+                  className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-3"
                 />
               )}
             </label>
@@ -134,7 +134,7 @@ export function PublicFormFill({ formId }: { formId: string }) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-primary)] px-3 text-[var(--ink)]"
+              className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-3 text-[var(--ink)]"
             />
           </label>
 

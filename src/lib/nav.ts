@@ -4,6 +4,7 @@ import {
   BookOpen,
   Zap,
   ClipboardList,
+  Wallet,
   Users,
   Settings,
   type LucideIcon,
@@ -21,6 +22,7 @@ export const navItems: NavItem[] = [
   { label: "Knowledge", href: "/knowledge", icon: BookOpen },
   { label: "Automations", href: "/automations", icon: Zap },
   { label: "Forms", href: "/forms", icon: ClipboardList },
+  { label: "Finance", href: "/finance", icon: Wallet },
   { label: "Team", href: "/team", icon: Users },
   { label: "Settings", href: "/settings", icon: Settings },
 ];

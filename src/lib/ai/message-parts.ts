@@ -200,6 +200,35 @@ export function getCreatedForms(message: UIMessage) {
   return forms;
 }
 
+export function getAccountBalance(message: UIMessage) {
+  for (const part of message.parts) {
+    if (part.type !== "tool-get_account_balance" || !isOutputAvailable(part)) continue;
+    const output = part.output as { ok: boolean; nickname?: string; balance?: number };
+    if (output.ok && output.balance !== undefined) {
+      return { nickname: output.nickname ?? "Account", balance: output.balance };
+    }
+  }
+  return null;
+}
+
+export interface DraftedPayment {
+  paymentId: string;
+  vendorName: string;
+  amount: number;
+}
+
+export function getDraftedPayment(message: UIMessage): DraftedPayment | null {
+  let latest: DraftedPayment | null = null;
+  for (const part of message.parts) {
+    if (part.type !== "tool-pay_vendor" || !isOutputAvailable(part)) continue;
+    const output = part.output as { ok: boolean; paymentId?: string; vendorName?: string; amount?: number };
+    if (output.ok && output.paymentId) {
+      latest = { paymentId: output.paymentId, vendorName: output.vendorName ?? "", amount: output.amount ?? 0 };
+    }
+  }
+  return latest;
+}
+
 export function getText(message: UIMessage): string {
   return message.parts
     .filter((p): p is Extract<AnyPart, { type: "text" }> => p.type === "text")
@@ -222,6 +251,10 @@ export function isToolPending(message: UIMessage): string | null {
     "tool-list_form_responses": "Fetching responses…",
     "tool-list_tasks": "Checking tasks…",
     "tool-complete_task": "Marking task done…",
+    "tool-get_account_balance": "Checking balance…",
+    "tool-list_transactions": "Fetching transactions…",
+    "tool-analyze_spending": "Analyzing spending…",
+    "tool-pay_vendor": "Drafting payment…",
   };
   for (const part of message.parts) {
     if (part.type in labels && !isOutputAvailable(part)) {

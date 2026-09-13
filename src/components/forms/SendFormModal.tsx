@@ -59,13 +59,13 @@ export function SendFormModal({
               onChange={(e) => setEmails(e.target.value)}
               placeholder="Recipient emails, comma or newline separated"
               rows={3}
-              className="mt-4 w-full resize-none rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-primary)] p-2.5 text-[var(--text-sm)]"
+              className="mt-4 w-full resize-none rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] p-2.5 text-[var(--text-sm)]"
             />
             <input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Personal message (optional)"
-              className="mt-2 h-10 w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-primary)] px-3 text-[var(--text-sm)]"
+              className="mt-2 h-10 w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-3 text-[var(--text-sm)]"
             />
             {error && <p className="mt-2 text-[var(--text-xs)] text-[var(--danger)]">{error}</p>}
             <div className="mt-4 flex justify-end">

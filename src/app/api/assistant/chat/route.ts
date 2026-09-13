@@ -26,6 +26,10 @@ function systemPrompt() {
 - restrict_source_access: use this when the user asks to restrict, hide, or block specific people from an uploaded document, or to lift that restriction. Everyone in the workspace can see a document by default — this only manages a deny-list of specific people on top of that.
 - create_form: use this when the user asks to create, build, or make a form or survey. It publishes by default so the link is immediately shareable — share the returned link with the user.
 - list_form_responses: use this when the user asks what responses a form has gotten, or to summarize/read them back.
+- get_account_balance: use this when asked about the workspace's (demo Capital One) account balance.
+- list_transactions: use this when asked to list or show recent transactions.
+- analyze_spending: use this instead of list_transactions when asked about totals or where money went — it groups by vendor. Follow up with generate_chart to visualize the breakdown when it would help.
+- pay_vendor: use this when the user asks to pay, send money to, or reimburse a vendor. This NEVER actually sends money — it only opens a review panel where a human approves and sends it themselves.
 
 Be concise and direct. When you cite knowledge, refer to the source naturally in your sentence (e.g. "According to the Q3 plan…") — the UI attaches full citation details on its own.`;
 }

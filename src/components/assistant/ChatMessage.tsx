@@ -4,6 +4,7 @@ import {
   CalendarCheck,
   CalendarX,
   Check,
+  CircleDollarSign,
   ClipboardList,
   ExternalLink,
   FileText,
@@ -11,12 +12,16 @@ import {
   Loader2,
   Mail,
   ShieldOff,
+  Sparkles,
+  Wallet,
 } from "lucide-react";
 import clsx from "clsx";
 import { ChartRenderer } from "@/components/charts/ChartRenderer";
 import { ConfidenceBadge } from "./ConfidenceBadge";
+import { Markdown } from "./Markdown";
 import {
   getAccessChanges,
+  getAccountBalance,
   getCancelledMeetings,
   getChart,
   getCitations,
@@ -24,6 +29,7 @@ import {
   getCreatedForms,
   getCreatedTasks,
   getDataAnalysis,
+  getDraftedPayment,
   getEmailDraft,
   getScheduledMeetings,
   getText,
@@ -33,9 +39,11 @@ import {
 export function ChatMessage({
   message,
   onOpenDraft,
+  onOpenPayment,
 }: {
   message: UIMessage;
   onOpenDraft?: (draftId: string) => void;
+  onOpenPayment?: (paymentId: string) => void;
 }) {
   const isUser = message.role === "user";
   const text = getText(message);
@@ -49,12 +57,14 @@ export function ChatMessage({
   const analyses = isUser ? [] : getDataAnalysis(message);
   const accessChanges = isUser ? [] : getAccessChanges(message);
   const createdForms = isUser ? [] : getCreatedForms(message);
+  const balance = isUser ? null : getAccountBalance(message);
+  const draftedPayment = isUser ? null : getDraftedPayment(message);
   const pending = isUser ? null : isToolPending(message);
 
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] rounded-[var(--radius-lg)] bg-[var(--accent-soft)] px-4 py-2.5 text-[var(--text-base)]">
+        <div className="max-w-[80%] rounded-[var(--radius-lg)] bg-[var(--accent-soft)] px-4 py-2.5 text-[var(--text-base)] whitespace-pre-wrap">
           {text}
         </div>
       </div>
@@ -62,12 +72,13 @@ export function ChatMessage({
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      {text && (
-        <p className="whitespace-pre-wrap text-[var(--text-base)] leading-relaxed">
-          {text}
-        </p>
-      )}
+    <div className="flex gap-3">
+      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)]">
+        <Sparkles size={13} className="text-[var(--muted)]" />
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+      {text && <Markdown text={text} />}
 
       {pending && (
         <div className="flex items-center gap-2 text-[var(--text-sm)] text-[var(--muted)]">
@@ -167,6 +178,23 @@ export function ChatMessage({
         </div>
       ))}
 
+      {balance && (
+        <div className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-[var(--text-sm)]">
+          <Wallet size={15} className="text-[var(--accent)]" />
+          {balance.nickname}: <span className="font-medium tabular-nums">${balance.balance.toFixed(2)}</span>
+        </div>
+      )}
+
+      {draftedPayment && (
+        <button
+          onClick={() => onOpenPayment?.(draftedPayment.paymentId)}
+          className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-left text-[var(--text-sm)] hover:bg-[var(--accent-soft)]"
+        >
+          <CircleDollarSign size={15} className="text-[var(--accent)]" />
+          Drafted payment: {draftedPayment.vendorName} · ${draftedPayment.amount.toFixed(2)}
+        </button>
+      )}
+
       {emailDraft && (
         <button
           onClick={() => onOpenDraft?.(emailDraft.draftId)}
@@ -193,6 +221,7 @@ export function ChatMessage({
           <ConfidenceBadge sourceCount={citations.length} />
         </div>
       )}
+      </div>
     </div>
   );
 }

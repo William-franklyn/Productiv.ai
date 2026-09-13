@@ -7,6 +7,7 @@ import { sendMeetingInvite, sendMeetingCancellation } from "@/lib/email/meeting-
 import { summarizeDataset, groupByAggregate, type Aggregate } from "@/lib/knowledge/analyze";
 import type { Dataset } from "@/lib/knowledge/tabular";
 import type { FormField } from "@/lib/forms/types";
+import { getAccount, listTransactions } from "@/lib/nessie/client";
 
 async function fetchMembers(supabase: SupabaseClient, orgId: string) {
   const { data } = await supabase
@@ -582,6 +583,122 @@ export function buildTools(ctx: {
           responseCount: readable.length,
           responses: readable,
         };
+      },
+    }),
+
+    get_account_balance: tool({
+      description: "Get the workspace's connected Capital One (demo) account balance.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        const { data: connection } = await ctx.supabase
+          .from("nessie_connections")
+          .select("account_id, nickname")
+          .eq("organization_id", ctx.orgId)
+          .maybeSingle();
+        if (!connection) return { ok: false as const, reason: "not_connected" as const };
+
+        try {
+          const account = await getAccount(connection.account_id);
+          return { ok: true as const, nickname: connection.nickname, balance: account.balance };
+        } catch (err) {
+          return { ok: false as const, reason: "error" as const, error: String(err) };
+        }
+      },
+    }),
+
+    list_transactions: tool({
+      description: "List recent transactions on the workspace's connected Capital One (demo) account.",
+      inputSchema: z.object({
+        limit: z.number().optional().describe("Max transactions to return, defaults to 10"),
+      }),
+      execute: async ({ limit }) => {
+        const { data: connection } = await ctx.supabase
+          .from("nessie_connections")
+          .select("account_id")
+          .eq("organization_id", ctx.orgId)
+          .maybeSingle();
+        if (!connection) return { ok: false as const, reason: "not_connected" as const };
+
+        try {
+          const transactions = await listTransactions(connection.account_id);
+          return { ok: true as const, transactions: transactions.slice(0, limit ?? 10) };
+        } catch (err) {
+          return { ok: false as const, reason: "error" as const, error: String(err) };
+        }
+      },
+    }),
+
+    analyze_spending: tool({
+      description:
+        "Break down spending on the workspace's connected Capital One (demo) account — totals, and by vendor/description. Use this instead of list_transactions when the user asks about totals or 'where did the money go' rather than a raw list.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        const { data: connection } = await ctx.supabase
+          .from("nessie_connections")
+          .select("account_id")
+          .eq("organization_id", ctx.orgId)
+          .maybeSingle();
+        if (!connection) return { ok: false as const, reason: "not_connected" as const };
+
+        try {
+          const transactions = await listTransactions(connection.account_id);
+          const spending = transactions.filter((t) => t.amount < 0);
+          const totalSpent = spending.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+          const byVendor = new Map<string, number>();
+          for (const t of spending) {
+            byVendor.set(t.description, (byVendor.get(t.description) ?? 0) + Math.abs(t.amount));
+          }
+          const breakdown = [...byVendor.entries()]
+            .map(([vendor, amount]) => ({ vendor, amount }))
+            .sort((a, b) => b.amount - a.amount)
+            .slice(0, 20);
+
+          return { ok: true as const, totalSpent, transactionCount: spending.length, breakdown };
+        } catch (err) {
+          return { ok: false as const, reason: "error" as const, error: String(err) };
+        }
+      },
+    }),
+
+    pay_vendor: tool({
+      description:
+        "Draft a payment to a vendor from the workspace's connected Capital One (demo) account. This NEVER actually pays anyone — it only creates a pending payment that opens in a review panel for a human to approve and send.",
+      inputSchema: z.object({
+        vendorName: z.string(),
+        amount: z.number().positive(),
+        description: z.string().optional(),
+      }),
+      execute: async ({ vendorName, amount, description }) => {
+        const { data: connection } = await ctx.supabase
+          .from("nessie_connections")
+          .select("id")
+          .eq("organization_id", ctx.orgId)
+          .maybeSingle();
+        if (!connection) return { ok: false as const, reason: "not_connected" as const };
+
+        const { data, error } = await ctx.supabase
+          .from("pending_payments")
+          .insert({
+            organization_id: ctx.orgId,
+            created_by: ctx.userId,
+            vendor_name: vendorName,
+            amount,
+            description: description ?? null,
+          })
+          .select("id")
+          .single();
+
+        if (error) return { ok: false as const, reason: "error" as const, error: error.message };
+
+        await logActivity(ctx.supabase, {
+          organizationId: ctx.orgId,
+          actorId: ctx.userId,
+          action: "drafted_payment",
+          detail: `Assistant drafted payment to ${vendorName}: $${amount.toFixed(2)}`,
+        });
+
+        return { ok: true as const, paymentId: data.id, vendorName, amount };
       },
     }),
 

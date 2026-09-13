@@ -64,12 +64,12 @@ export function FormBuilder({
                 value={field.label}
                 onChange={(e) => updateField(field.id, { label: e.target.value })}
                 placeholder="Question"
-                className="h-9 flex-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg-primary)] px-2.5 text-[var(--text-sm)]"
+                className="h-9 flex-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg)] px-2.5 text-[var(--text-sm)]"
               />
               <select
                 value={field.type}
                 onChange={(e) => updateField(field.id, { type: e.target.value as FormField["type"] })}
-                className="h-9 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg-primary)] px-2 text-[var(--text-sm)]"
+                className="h-9 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg)] px-2 text-[var(--text-sm)]"
               >
                 {FIELD_TYPES.map((t) => (
                   <option key={t.value} value={t.value}>
@@ -105,7 +105,7 @@ export function FormBuilder({
                   })
                 }
                 placeholder="Options, comma separated"
-                className="h-9 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg-primary)] px-2.5 text-[var(--text-sm)]"
+                className="h-9 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg)] px-2.5 text-[var(--text-sm)]"
               />
             )}
           </div>
