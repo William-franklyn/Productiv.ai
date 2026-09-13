@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/Card";
 import { WorkspaceNameForm } from "@/components/settings/WorkspaceNameForm";
 import { CapabilitiesCard } from "@/components/settings/CapabilitiesCard";
 import { ViewAsControl } from "@/components/settings/ViewAsControl";
+import { SponsorshipCard } from "@/components/settings/SponsorshipCard";
 
 export const metadata = { title: "Settings" };
 
@@ -25,6 +26,8 @@ export default async function SettingsPage() {
       </Card>
 
       <ViewAsControl realRole={realRole} />
+
+      <SponsorshipCard canManage={role !== "member"} />
 
       <CapabilitiesCard />
     </main>

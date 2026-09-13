@@ -245,6 +245,32 @@ export function getReceivedPayment(message: UIMessage): ReceivedPayment | null {
   return null;
 }
 
+/**
+ * Sponsored-credits usage classification: a "refusal" is specifically a
+ * knowledge question that came back empty (search_knowledge found nothing)
+ * with nothing else in the turn that actually succeeded — that's the "your
+ * teacher hasn't covered this" case, which is free. Everything else,
+ * including plain conversation with no tool calls at all, counts as answered.
+ */
+export function classifyUsage(message: UIMessage): "answered" | "refused" {
+  let sawEmptySearch = false;
+  let sawSuccess = false;
+
+  for (const part of message.parts) {
+    if (!isOutputAvailable(part) || !part.type.startsWith("tool-")) continue;
+    if (part.type === "tool-search_knowledge") {
+      const output = part.output as { found: boolean };
+      if (output.found) sawSuccess = true;
+      else sawEmptySearch = true;
+    } else {
+      const output = part.output as { ok?: boolean };
+      if (output.ok !== false) sawSuccess = true;
+    }
+  }
+
+  return sawEmptySearch && !sawSuccess ? "refused" : "answered";
+}
+
 export function getText(message: UIMessage): string {
   return message.parts
     .filter((p): p is Extract<AnyPart, { type: "text" }> => p.type === "text")
