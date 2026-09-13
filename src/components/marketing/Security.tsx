@@ -48,7 +48,7 @@ export function Security() {
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
       <MarketingHeader />
 
-      <main className="mx-auto max-w-5xl px-6 pb-24 pt-12">
+      <main className="mx-auto max-w-5xl px-5 pb-16 pt-8 sm:px-6 sm:pb-24 sm:pt-12">
         <div className="max-w-2xl">
           <p className="text-[var(--text-sm)] font-medium uppercase tracking-wide text-[var(--accent)]">
             Security
@@ -63,7 +63,7 @@ export function Security() {
           </p>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="mt-8 grid sm:mt-12 grid-cols-1 gap-4 sm:grid-cols-2">
           {controls.map((c) => (
             <Card key={c.title} className="p-5">
               <c.icon size={20} className="text-[var(--accent)]" />

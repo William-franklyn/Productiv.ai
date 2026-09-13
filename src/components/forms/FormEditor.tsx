@@ -84,7 +84,7 @@ export function FormEditor({ formId }: { formId: string }) {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex items-center justify-between">
         <div className="flex gap-1 rounded-[var(--radius)] border border-[var(--border)] p-1">
           {(["build", "responses"] as const).map((t) => (
@@ -156,7 +156,7 @@ export function FormEditor({ formId }: { formId: string }) {
           {!responses ? (
             <Loader2 size={18} className="animate-spin text-[var(--muted)]" />
           ) : responses.length === 0 ? (
-            <Card className="p-8 text-center text-[var(--text-sm)] text-[var(--muted)]">
+            <Card className="p-4 sm:p-6 lg:p-8 text-center text-[var(--text-sm)] text-[var(--muted)]">
               No responses yet.
             </Card>
           ) : (

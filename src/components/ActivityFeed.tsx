@@ -37,7 +37,7 @@ export function ActivityFeed() {
     <div className="flex flex-col gap-2">
       {entries === null && <p className="text-[var(--text-sm)] text-[var(--muted)]">Loading…</p>}
       {entries?.length === 0 && (
-        <Card className="p-8 text-center text-[var(--text-sm)] text-[var(--muted)]">
+        <Card className="p-4 sm:p-6 lg:p-8 text-center text-[var(--text-sm)] text-[var(--muted)]">
           Nothing has happened here yet.
         </Card>
       )}

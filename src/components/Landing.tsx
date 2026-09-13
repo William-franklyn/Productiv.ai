@@ -86,7 +86,7 @@ export function Landing() {
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
       <MarketingHeader />
 
-      <main className="mx-auto max-w-5xl px-6 pb-24 pt-16">
+      <main className="mx-auto max-w-5xl px-5 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-16">
         <section className="max-w-2xl">
           <p className="text-[var(--text-sm)] font-medium uppercase tracking-wide text-[var(--accent)]">
             Built for organizations doing more with less
@@ -113,7 +113,7 @@ export function Landing() {
           </div>
         </section>
 
-        <section className="mt-16">
+        <section className="mt-12 sm:mt-16">
           <p className="text-[var(--text-xs)] font-medium uppercase tracking-wide text-[var(--muted)]">
             Who it&apos;s for
           </p>
@@ -130,7 +130,7 @@ export function Landing() {
           </div>
         </section>
 
-        <section className="mt-20 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <section className="mt-14 sm:mt-20 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {features.map((f) => (
             <Card key={f.title} className="p-5">
               <f.icon size={20} className="text-[var(--accent)]" />
@@ -144,8 +144,8 @@ export function Landing() {
           ))}
         </section>
 
-        <section className="mt-20">
-          <Card className="p-6 sm:p-8">
+        <section className="mt-14 sm:mt-20">
+          <Card className="p-5 sm:p-8">
             <HandCoins size={22} className="text-[var(--accent)]" />
             <h2 className="mt-3 text-[var(--text-xl)] font-semibold">
               Sponsored, not just subscribed
@@ -167,7 +167,7 @@ export function Landing() {
           </Card>
         </section>
 
-        <section className="mt-20">
+        <section className="mt-14 sm:mt-20">
           <p className="text-[var(--text-xs)] font-medium uppercase tracking-wide text-[var(--muted)]">
             Built on
           </p>

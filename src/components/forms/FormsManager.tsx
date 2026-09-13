@@ -44,7 +44,7 @@ export function FormsManager() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[var(--text-lg)] font-semibold">Forms</h1>
@@ -62,7 +62,7 @@ export function FormsManager() {
         {!forms ? (
           <Loader2 size={18} className="animate-spin text-[var(--muted)]" />
         ) : forms.length === 0 ? (
-          <Card className="p-8 text-center text-[var(--text-sm)] text-[var(--muted)]">
+          <Card className="p-4 sm:p-6 lg:p-8 text-center text-[var(--text-sm)] text-[var(--muted)]">
             No forms yet — create one to start collecting responses.
           </Card>
         ) : (

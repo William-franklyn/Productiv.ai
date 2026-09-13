@@ -109,7 +109,7 @@ export function FinanceManager({ canManage }: { canManage: boolean }) {
   const pendingPayments = (payments ?? []).filter((p) => p.status === "pending");
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <h1 className="text-[var(--text-lg)] font-semibold">Finance</h1>
       <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">
         A connected Capital One sandbox account the assistant can read and draft payments from.

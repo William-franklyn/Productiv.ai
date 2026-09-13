@@ -128,7 +128,7 @@ export function TaskList() {
       <div className="mt-6 flex flex-col gap-2">
         {loading && <p className="text-[var(--text-sm)] text-[var(--muted)]">Loading…</p>}
         {!loading && tasks.length === 0 && (
-          <Card className="p-8 text-center text-[var(--text-sm)] text-[var(--muted)]">
+          <Card className="p-4 sm:p-6 lg:p-8 text-center text-[var(--text-sm)] text-[var(--muted)]">
             No tasks yet — create one above or ask the assistant.
           </Card>
         )}

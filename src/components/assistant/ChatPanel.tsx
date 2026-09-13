@@ -212,7 +212,9 @@ export function ChatPanel({
   }
 
   return (
-    <div className="flex h-screen">
+    // h-full, not h-screen: AssistantShell already owns the viewport height,
+    // and nesting a second h-screen inside it overflows by the header's height.
+    <div className="flex h-full min-h-0">
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex shrink-0 items-center justify-end gap-1 border-b border-[var(--border)] px-4 py-2">
           <button

@@ -32,7 +32,9 @@ export function AssistantContainer({ conversationId }: { conversationId?: string
 
   if (!conversationId || messages === null) {
     return (
-      <div className="flex h-screen items-center justify-center text-[var(--muted)]">
+      // h-full, not h-screen: AssistantShell already owns the viewport height,
+      // and a second h-screen nested inside it overflows by the shell's own box.
+      <div className="flex h-full items-center justify-center text-[var(--muted)]">
         <Loader2 size={18} className="animate-spin" />
       </div>
     );

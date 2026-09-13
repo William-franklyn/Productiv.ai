@@ -12,7 +12,13 @@ interface ConversationRow {
   created_at: string;
 }
 
-export function ChatSidebar() {
+export function ChatSidebar({
+  mobileOpen = false,
+  onCloseMobile,
+}: {
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [conversations, setConversations] = useState<ConversationRow[] | null>(null);
@@ -35,8 +41,23 @@ export function ChatSidebar() {
     if (id === activeId) router.push("/assistant");
   }
 
-  return (
-    <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg)] p-3">
+  // Escape closes the drawer, and the page behind it stops scrolling.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onCloseMobile?.();
+    }
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen, onCloseMobile]);
+
+  const body = (
+    <>
       <Wordmark size={18} className="mb-3 px-2 py-1" />
 
       <Link href="/dashboard" className="nav-row">
@@ -68,6 +89,7 @@ export function ChatSidebar() {
               >
                 <Link
                   href={`/assistant/${c.id}`}
+                  onClick={onCloseMobile}
                   className="min-w-0 flex-1 truncate py-0.5"
                 >
                   {c.title}
@@ -79,7 +101,8 @@ export function ChatSidebar() {
                   }}
                   aria-label="Delete chat"
                   title="Delete chat"
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[var(--radius-sm)] opacity-0 transition-opacity hover:text-[var(--danger)] group-hover:opacity-100"
+                  // Always visible on touch, where there is no hover to reveal it.
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[var(--radius-sm)] transition-opacity hover:text-[var(--danger)] md:opacity-0 md:group-hover:opacity-100"
                 >
                   <Trash2 size={13} />
                 </button>
@@ -88,6 +111,34 @@ export function ChatSidebar() {
           )}
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* h-full, not h-screen — AssistantShell's root already sets the
+          viewport height, and this sits inside it. */}
+      <aside className="hidden h-full w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg)] p-3 md:flex">
+        {body}
+      </aside>
+
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-[var(--scrim)]"
+            onClick={onCloseMobile}
+            aria-hidden="true"
+          />
+          <aside
+            role="dialog"
+            aria-modal="true"
+            aria-label="Chat history"
+            className="absolute inset-y-0 left-0 flex w-64 max-w-[82vw] flex-col border-r border-[var(--border)] bg-[var(--bg)] p-3 shadow-[var(--shadow-lg)]"
+          >
+            {body}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

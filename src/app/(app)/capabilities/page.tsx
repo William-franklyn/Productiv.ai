@@ -4,7 +4,7 @@ export const metadata = { title: "Capabilities" };
 
 export default function CapabilitiesPage() {
   return (
-    <main className="p-8">
+    <main className="p-4 sm:p-6 lg:p-8">
       <h1 className="text-[var(--text-lg)] font-semibold">What iRABU can do</h1>
       <p className="mt-1 max-w-lg text-[var(--text-sm)] text-[var(--muted)]">
         Every capability below is one it genuinely has today — the "not yet"

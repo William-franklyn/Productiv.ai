@@ -12,7 +12,7 @@ export default async function SettingsPage() {
   const { orgName, role, realRole, fullName, viewingAs, userId } = await requireAuth();
 
   return (
-    <main className="flex flex-col gap-6 p-8">
+    <main className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <h1 className="text-[var(--text-lg)] font-semibold">Settings</h1>
 
       <Card className="p-5">

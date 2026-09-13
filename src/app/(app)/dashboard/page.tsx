@@ -65,7 +65,7 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <main className="p-8">
+    <main className="p-4 sm:p-6 lg:p-8">
       <h1 className="text-[var(--text-lg)] font-semibold">
         Welcome{fullName ? `, ${fullName.split(" ")[0]}` : ""}
       </h1>

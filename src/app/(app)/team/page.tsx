@@ -6,7 +6,7 @@ export const metadata = { title: "Team" };
 export default async function TeamPage() {
   const { role } = await requireAuth();
   return (
-    <main className="p-8">
+    <main className="p-4 sm:p-6 lg:p-8">
       <TeamManager canManage={role !== "member"} />
     </main>
   );
