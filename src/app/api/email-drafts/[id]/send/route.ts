@@ -50,7 +50,21 @@ export async function POST(
   });
 
   if (!result.sent) {
-    return NextResponse.json({ error: "Could not send email — check RESEND_API_KEY" }, { status: 502 });
+    if (result.reason === "not_configured") {
+      return NextResponse.json({ error: "Email isn't configured for this workspace" }, { status: 502 });
+    }
+    // The sandbox sender (no RESEND_FROM domain verified) can only deliver
+    // to the Resend account's own address — surface that plainly instead of
+    // a generic failure, since it reads as a bad key otherwise.
+    const sandboxRestricted = result.error?.includes("testing email address");
+    return NextResponse.json(
+      {
+        error: sandboxRestricted
+          ? "This workspace's email sender is in sandbox mode and can only deliver to its own test address. Verify a sending domain to email other recipients."
+          : `Could not send email: ${result.error}`,
+      },
+      { status: 502 },
+    );
   }
 
   await supabase
