@@ -1,6 +1,6 @@
 import "server-only";
 
-const BASE_URL = "http://api.nessieisreal.com";
+const BASE_URL = "https://api.nessieisreal.com";
 
 function getKey() {
   return process.env.NESSIE_API_KEY ?? null;
