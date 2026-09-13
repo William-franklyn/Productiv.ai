@@ -13,7 +13,7 @@ export default async function SettingsPage() {
 
   return (
     <main className="flex flex-col gap-6 p-8">
-      <h1 className="text-xl font-semibold">Settings</h1>
+      <h1 className="text-[var(--text-lg)] font-semibold">Settings</h1>
 
       <Card className="p-5">
         <h3 className="text-[var(--text-base)] font-medium">Workspace</h3>

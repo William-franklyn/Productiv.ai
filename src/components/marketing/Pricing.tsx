@@ -65,7 +65,7 @@ export function Pricing() {
           <p className="text-[var(--text-sm)] font-medium uppercase tracking-wide text-[var(--accent)]">
             Pricing
           </p>
-          <h1 className="mt-3 text-4xl font-semibold leading-tight">
+          <h1 className="mt-3 text-[var(--text-2xl)] font-semibold leading-tight">
             One price per workspace, not per seat headache.
           </h1>
           <p className="mt-4 text-[var(--text-lg)] text-[var(--muted)]">
@@ -85,14 +85,14 @@ export function Pricing() {
               )}
             >
               {tier.highlight && (
-                <span className="mb-2 inline-block w-fit rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[var(--text-xs)] font-medium text-[var(--accent)]">
+                <span className="mb-2 inline-block w-fit rounded-[var(--radius-sm)] bg-[var(--accent-soft)] px-2 py-0.5 text-[var(--text-xs)] font-medium text-[var(--accent)]">
                   Most popular
                 </span>
               )}
               <h3 className="text-[var(--text-lg)] font-semibold">{tier.name}</h3>
               <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">{tier.tagline}</p>
               <p className="mt-4">
-                <span className="text-3xl font-semibold">{tier.price}</span>
+                <span className="text-[var(--text-xl)] font-semibold">{tier.price}</span>
                 {tier.period && (
                   <span className="text-[var(--text-sm)] text-[var(--muted)]">{tier.period}</span>
                 )}

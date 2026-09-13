@@ -47,7 +47,7 @@ export function FormsManager() {
     <div className="p-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Forms</h1>
+          <h1 className="text-[var(--text-lg)] font-semibold">Forms</h1>
           <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">
             Build a form, send it, and read the responses.
           </p>
@@ -70,7 +70,7 @@ export function FormsManager() {
             <Card
               key={f.id}
               onClick={() => router.push(`/forms/${f.id}`)}
-              className="flex cursor-pointer items-center gap-3 p-3.5 hover:bg-[var(--accent-soft)]"
+              className="flex cursor-pointer items-center gap-3 p-3.5 hover:bg-[var(--surface-sunken)]"
             >
               <ClipboardList size={18} className="text-[var(--muted)]" />
               <span className="flex-1 truncate text-[var(--text-sm)]">{f.title}</span>

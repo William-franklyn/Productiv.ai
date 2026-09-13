@@ -90,7 +90,7 @@ export function TeamManager({ canManage }: { canManage: boolean }) {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold">Team</h1>
+      <h1 className="text-[var(--text-lg)] font-semibold">Team</h1>
       <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">
         Invite teammates into this workspace.
       </p>
@@ -102,13 +102,13 @@ export function TeamManager({ canManage }: { canManage: boolean }) {
           placeholder="teammate@company.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
+          className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
         />
         <input
           placeholder="Add a personal note (optional)"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3 text-[var(--text-sm)]"
+          className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3 text-[var(--text-sm)]"
         />
         <Button type="submit" disabled={pending} className="w-fit">
           <UserPlus size={16} />

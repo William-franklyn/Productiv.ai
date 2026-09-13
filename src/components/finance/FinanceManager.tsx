@@ -110,7 +110,7 @@ export function FinanceManager({ canManage }: { canManage: boolean }) {
 
   return (
     <div className="p-8">
-      <h1 className="text-xl font-semibold">Finance</h1>
+      <h1 className="text-[var(--text-lg)] font-semibold">Finance</h1>
       <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">
         A connected Capital One sandbox account the assistant can read and draft payments from.
       </p>
@@ -137,7 +137,7 @@ export function FinanceManager({ canManage }: { canManage: boolean }) {
           <Card className="mt-6 flex items-center justify-between p-6">
             <div>
               <p className="text-[var(--text-sm)] text-[var(--muted)]">{connection.nickname}</p>
-              <p className="tabular-nums mt-1 text-2xl font-semibold">
+              <p className="tabular-nums mt-1 text-[var(--text-xl)] font-semibold">
                 {connection.balance != null ? `$${connection.balance.toFixed(2)}` : "—"}
               </p>
             </div>

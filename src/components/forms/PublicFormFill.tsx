@@ -73,7 +73,7 @@ export function PublicFormFill({ formId }: { formId: string }) {
   return (
     <div className="mx-auto min-h-screen max-w-lg p-6 py-12">
       <Card className="p-6">
-        <h1 className="text-xl font-semibold">{form.title}</h1>
+        <h1 className="text-[var(--text-lg)] font-semibold">{form.title}</h1>
         {form.description && (
           <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">{form.description}</p>
         )}
@@ -95,7 +95,7 @@ export function PublicFormFill({ formId }: { formId: string }) {
                   required={field.required}
                   defaultValue=""
                   onChange={(e) => setAnswers((a) => ({ ...a, [field.id]: e.target.value }))}
-                  className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-2.5"
+                  className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-2.5"
                 >
                   <option value="" disabled>
                     Select…
@@ -122,7 +122,7 @@ export function PublicFormFill({ formId }: { formId: string }) {
                       [field.id]: field.type === "number" ? Number(e.target.value) : e.target.value,
                     }))
                   }
-                  className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-3"
+                  className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-3"
                 />
               )}
             </label>
@@ -134,7 +134,7 @@ export function PublicFormFill({ formId }: { formId: string }) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-3 text-[var(--ink)]"
+              className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-3 text-[var(--ink)]"
             />
           </label>
 

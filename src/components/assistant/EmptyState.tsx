@@ -1,4 +1,4 @@
-import { BarChart3, ListTodo, Search, Sparkles } from "lucide-react";
+import { BarChart3, ListTodo, Search } from "lucide-react";
 
 const starters = [
   { icon: Search, text: "What does our knowledge base say about our refund policy?" },
@@ -8,25 +8,23 @@ const starters = [
 
 export function EmptyState({ onPick }: { onPick: (text: string) => void }) {
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 pt-20 text-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)]">
-        <Sparkles size={18} className="text-[var(--accent)]" />
-      </div>
+    <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 pt-24 text-center">
       <div>
-        <h2 className="text-lg font-medium">Ask iRABU anything</h2>
-        <p className="mt-1.5 max-w-sm text-[var(--text-sm)] text-[var(--muted)]">
-          It answers from your knowledge base with citations, creates tasks, or
-          turns numbers into a chart — every answer says where it came from.
+        <h2 className="text-[var(--text-xl)] font-semibold">Ask iRABU anything</h2>
+        <p className="mx-auto mt-2 max-w-md text-[var(--text-md)] text-[var(--muted)]">
+          It answers from your workspace with citations, creates tasks, drafts
+          email, and turns numbers into charts — every answer says where it
+          came from.
         </p>
       </div>
-      <div className="mt-2 flex w-full flex-col gap-2">
+      <div className="flex w-full flex-col gap-1.5">
         {starters.map((s) => (
           <button
             key={s.text}
             onClick={() => onPick(s.text)}
-            className="flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--border)] px-3.5 py-2.5 text-left text-[var(--text-sm)] transition-colors hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+            className="flex items-center gap-2.5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5 text-left text-[var(--text-sm)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-sunken)]"
           >
-            <s.icon size={15} className="shrink-0 text-[var(--accent)]" />
+            <s.icon size={15} className="shrink-0 text-[var(--muted)]" />
             {s.text}
           </button>
         ))}

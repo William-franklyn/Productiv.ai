@@ -42,7 +42,7 @@ export function LoginForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
+          className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
         />
       </label>
       <label className="flex flex-col gap-1.5 text-[var(--text-sm)]">
@@ -52,7 +52,7 @@ export function LoginForm() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
+          className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
         />
       </label>
       {error && <p className="text-[var(--text-sm)] text-[var(--danger)]">{error}</p>}

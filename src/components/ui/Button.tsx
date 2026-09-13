@@ -10,16 +10,26 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary: "bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90",
+  // A FILL uses --accent-solid (the vivid orange) with an INK label via
+  // --accent-solid-fg — never white, which fails AA on this orange. See the
+  // accent block in globals.css for the reasoning and the measured ratios.
+  // Hover softens the fill rather than swapping to --accent-hover: that tone
+  // is *darker* than the fill, and an ink label on it would drop to roughly
+  // 2.5:1. Opacity keeps the validated ink-on-vivid-orange pairing intact.
+  primary:
+    "bg-[var(--accent-solid)] text-[var(--accent-solid-fg)] hover:opacity-90",
   secondary:
-    "bg-[var(--surface)] text-[var(--ink)] border border-[var(--border)] hover:bg-[var(--accent-soft)]",
-  ghost: "text-[var(--ink)] hover:bg-[var(--accent-soft)]",
-  danger: "bg-[var(--danger)] text-white hover:opacity-90",
+    "bg-[var(--surface)] text-[var(--ink)] border border-[var(--border)] hover:bg-[var(--surface-sunken)] hover:border-[var(--border-strong)]",
+  ghost: "text-[var(--muted)] hover:bg-[var(--surface-sunken)] hover:text-[var(--ink)]",
+  // --danger-fg, not text-white: white clears 6.71:1 on the light theme's
+  // dark red but drops to 2.62:1 on the dark theme's lighter salmon.
+  danger: "bg-[var(--danger)] text-[var(--danger-fg)] hover:opacity-90",
 };
 
+// Dense by default — professional tools earn their whitespace.
 const sizeClasses: Record<Size, string> = {
-  sm: "h-8 px-3 text-[var(--text-sm)]",
-  md: "h-10 px-4 text-[var(--text-base)]",
+  sm: "h-7 px-2.5 text-[var(--text-sm)] gap-1.5",
+  md: "h-9 px-3.5 text-[var(--text-sm)] gap-2",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -28,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={clsx(
-          "inline-flex items-center justify-center gap-2 rounded-[var(--radius)] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+          "inline-flex shrink-0 items-center justify-center rounded-[var(--radius)] font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:shrink-0",
           variantClasses[variant],
           sizeClasses[size],
           className,

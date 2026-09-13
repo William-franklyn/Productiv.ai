@@ -114,7 +114,7 @@ export function FormBuilder({
 
       <button
         onClick={() => onChange({ fields: [...fields, newField()] })}
-        className="flex w-fit items-center gap-1.5 rounded-[var(--radius)] border border-dashed border-[var(--border)] px-3 py-2 text-[var(--text-sm)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
+        className="flex w-fit items-center gap-1.5 rounded-[var(--radius)] border border-dashed border-[var(--border)] px-3 py-2 text-[var(--text-sm)] text-[var(--muted)] hover:bg-[var(--surface-sunken)] hover:text-[var(--ink)]"
       >
         <Plus size={14} />
         Add question

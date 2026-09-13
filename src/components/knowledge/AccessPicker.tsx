@@ -48,7 +48,7 @@ export function AccessPicker({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--scrim)] p-4">
       <div className="w-full max-w-sm rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-[var(--text-base)] font-semibold">
@@ -88,7 +88,7 @@ export function AccessPicker({
             members.map((m) => (
               <label
                 key={m.id}
-                className="flex items-center gap-2.5 rounded-[var(--radius-sm)] px-2 py-2 text-[var(--text-sm)] hover:bg-[var(--accent-soft)]"
+                className="flex items-center gap-2.5 rounded-[var(--radius-sm)] px-2 py-2 text-[var(--text-sm)] hover:bg-[var(--surface-sunken)]"
               >
                 <input
                   type="checkbox"
@@ -105,7 +105,7 @@ export function AccessPicker({
         <div className="mt-4 flex justify-end gap-2">
           <button
             onClick={onCancel}
-            className="rounded-[var(--radius)] px-3 py-2 text-[var(--text-sm)] text-[var(--muted)] hover:bg-[var(--accent-soft)]"
+            className="rounded-[var(--radius)] px-3 py-2 text-[var(--text-sm)] text-[var(--muted)] hover:bg-[var(--surface-sunken)]"
           >
             Cancel
           </button>

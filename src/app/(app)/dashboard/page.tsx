@@ -66,7 +66,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="p-8">
-      <h1 className="text-xl font-semibold">
+      <h1 className="text-[var(--text-lg)] font-semibold">
         Welcome{fullName ? `, ${fullName.split(" ")[0]}` : ""}
       </h1>
       <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">{orgName}</p>
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
         {stats.map((s) => (
           <Card key={s.label} className="p-5">
             <p className="text-[var(--text-sm)] text-[var(--muted)]">{s.label}</p>
-            <p className="tabular-nums mt-2 text-2xl font-semibold">{s.value}</p>
+            <p className="tabular-nums mt-2 text-[var(--text-xl)] font-semibold">{s.value}</p>
           </Card>
         ))}
       </div>

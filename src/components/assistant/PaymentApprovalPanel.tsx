@@ -76,7 +76,7 @@ export function PaymentApprovalPanel({
         <button
           onClick={onClose}
           aria-label="Close"
-          className="flex h-6 w-6 items-center justify-center rounded-[var(--radius-sm)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
+          className="flex h-6 w-6 items-center justify-center rounded-[var(--radius-sm)] text-[var(--muted)] hover:bg-[var(--surface-sunken)] hover:text-[var(--ink)]"
         >
           <X size={14} />
         </button>
@@ -136,7 +136,7 @@ export function PaymentApprovalPanel({
             <button
               onClick={discard}
               disabled={busy}
-              className="flex items-center gap-1.5 rounded-[var(--radius)] px-3 py-2 text-[var(--text-sm)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--danger)] disabled:opacity-60"
+              className="flex items-center gap-1.5 rounded-[var(--radius)] px-3 py-2 text-[var(--text-sm)] text-[var(--muted)] hover:bg-[var(--surface-sunken)] hover:text-[var(--danger)] disabled:opacity-60"
             >
               <Trash2 size={14} />
               Discard

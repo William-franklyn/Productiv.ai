@@ -91,7 +91,7 @@ export function Landing() {
           <p className="text-[var(--text-sm)] font-medium uppercase tracking-wide text-[var(--accent)]">
             Built for organizations doing more with less
           </p>
-          <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
+          <h1 className="mt-4 text-[var(--text-2xl)] font-semibold leading-tight sm:text-[var(--text-display)]">
             The AI teammate for teams without an IT department.
           </h1>
           <p className="mt-5 text-[var(--text-lg)] text-[var(--muted)]">
@@ -121,7 +121,7 @@ export function Landing() {
             {audiences.map((a) => (
               <span
                 key={a.label}
-                className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3.5 py-1.5 text-[var(--text-sm)]"
+                className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[var(--text-sm)]"
               >
                 <a.icon size={14} className="text-[var(--accent)]" />
                 {a.label}
@@ -147,7 +147,7 @@ export function Landing() {
         <section className="mt-20">
           <Card className="p-6 sm:p-8">
             <HandCoins size={22} className="text-[var(--accent)]" />
-            <h2 className="mt-3 text-2xl font-semibold">
+            <h2 className="mt-3 text-[var(--text-xl)] font-semibold">
               Sponsored, not just subscribed
             </h2>
             <p className="mt-3 max-w-2xl text-[var(--text-base)] text-[var(--muted)]">
@@ -171,7 +171,7 @@ export function Landing() {
           <p className="text-[var(--text-xs)] font-medium uppercase tracking-wide text-[var(--muted)]">
             Built on
           </p>
-          <h2 className="mt-2 text-2xl font-semibold">
+          <h2 className="mt-2 text-[var(--text-xl)] font-semibold">
             Serious infrastructure, not a weekend wrapper around an API.
           </h2>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

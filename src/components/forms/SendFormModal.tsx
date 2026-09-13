@@ -41,7 +41,7 @@ export function SendFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--scrim)] p-4">
       <div className="w-full max-w-sm rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5">
         <div className="flex items-center justify-between">
           <h2 className="text-[var(--text-base)] font-semibold">Send form</h2>

@@ -1,80 +1,367 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN FOUNDATION
+
+   Matched to the sibling products getirabu.com and irabu.ai so the three
+   read as one brand: warm-paper canvas, brand orange, hairline borders,
+   dense type. Light is the primary theme; dark is a first-class secondary.
+
+   Three rules hold the look together — break them and the UI drifts back
+   to reading like a generic consumer app:
+
+   1. ACCENT IS FOR STATE AND PRIMARY ACTION ONLY. Never a decorative fill.
+      No accent-filled avatars, no gradient pills, no coloured glows. The
+      budget is: selection, focus, and the one primary button per view.
+   2. BORDERS DO THE WORK, NOT SHADOWS. Hairline separators define
+      structure. Shadows belong only to true overlays (menus, modals) and
+      stay neutral and tight — never coloured, never a halo.
+   3. ONE RADIUS SCALE, ONE TYPE SCALE. Both are enumerated below. Reaching
+      for an arbitrary `rounded-2xl` or jumping text-xl → text-xs is what
+      makes a UI read as unfinished.
+   ═══════════════════════════════════════════════════════════════════════ */
+
 :root {
-  --bg: #fbfbfa;
-  --surface: #ffffff;
-  --surface-raised: #ffffff;
-  --ink: #14161a;
-  --muted: #62666f;
-  --border: #e4e4e0;
-  --accent: #2952cc;
-  --accent-ink: #ffffff;
-  --accent-soft: #eef2fc;
+  color-scheme: light;
 
-  --success: #1a7f4e;
-  --warning: #a15c00;
-  --danger: #b3261e;
+  /* ── Surfaces — warm paper, matching irabu.ai ────────────────────────
+     The canvas is a warm off-white and cards step UP to pure white, so
+     structure reads through layering rather than through borders alone. */
+  --bg:             #f0ede8;   /* canvas */
+  --surface:        #ffffff;   /* cards, inputs */
+  --surface-raised: #ffffff;   /* dropdowns, modals */
+  --surface-sunken: #f7f4f0;   /* inset wells, code blocks */
+  --bubble:         #f2ece3;   /* the user's own chat message */
 
-  --radius-sm: 6px;
-  --radius: 10px;
-  --radius-lg: 16px;
+  /* ── Accent — brand orange, three-way split ──────────────────────────
+     The vivid orange measures ~3.5:1 as TEXT on warm paper, which fails
+     the 4.5:1 AA floor. Both sibling products solve this the same way
+     rather than shipping the failure, so this does too:
 
-  --shadow-menu: 0 8px 24px rgba(20, 22, 26, 0.1);
+       --accent           deepened — text, links, icons, badge text (4.5:1)
+       --accent-solid     the true vivid orange — FILLS only (needs 3:1)
+       --accent-solid-fg  INK label for text on an --accent-solid fill
 
-  --text-xs: 0.75rem;
-  --text-sm: 0.8125rem;
-  --text-base: 0.9375rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.5rem;
+     A new `background: var(--accent-solid)` ALWAYS pairs with
+     `color: var(--accent-solid-fg)` — never white, which fails the same
+     way here as it does on the siblings' identical orange. An icon-only
+     control is the one exception: a non-text glyph needs only 3:1. */
+  --accent:          #b8471f;
+  --accent-solid:    #e8521a;
+  --accent-solid-fg: #1a1310;
+  --accent-hover:    #a03d18;
+  --accent-soft:     #fde8df;   /* selected row tint */
+  --accent-ring:     rgba(232, 82, 26, 0.40);
+  /* Retained alias: older call sites paired a label with --accent-ink.
+     Pointed at the ink value so any straggler is still AA-correct. */
+  --accent-ink:      #1a1310;
+
+  /* Near-black filled control — the chat composer's send disc and any
+     neutral-filled control that is NOT the view's one accent action.
+     Keeping send neutral is what stops the composer competing with the
+     actual primary action on the page (rule 1). */
+  --ink-solid: #1a1714;
+
+  /* ── Text — warm near-black, never grey body copy ────────────────────
+     Grey body text is the single biggest reason a light UI reads cheap.
+     --muted is deepened one step from the reference's #7a736b: measured
+     against this canvas that tone is 4.00:1, under the 4.5 AA floor for
+     normal-size text, and it carries real secondary copy all over the app.
+     #706961 measures 4.63:1 on the canvas and 5.41:1 on a white card. */
+  --ink:   #1a1714;
+  --muted: #706961;
+
+  /* ── Borders — the main structural device ────────────────────────── */
+  --border:        #e0dbd4;
+  --border-strong: #cfc7bb;
+
+  /* ── Status ──────────────────────────────────────────────────────── */
+  --success: #2f6f4f;
+  --warning: #8a6414;
+  --danger:  #9a4022;
+  /* Label colour for anything FILLED with --danger, same contract as
+     --accent-solid-fg. White measures 6.71:1 on this dark red and is
+     correct here — but it is 2.62:1 on the dark theme's lighter salmon,
+     which is why this is a token rather than a hardcoded text-white. */
+  --danger-fg: #ffffff;
+
+  /* Modal scrim. Three dialogs had each hand-rolled their own black/30 vs
+     black/40, so the app dimmed by a different amount depending on which
+     one you opened. */
+  --scrim: rgba(26, 23, 20, 0.35);
+
+  /* ── Elevation — neutral and tight. Overlays only. ───────────────── */
+  --shadow-sm: 0 1px 2px rgba(26, 23, 20, 0.06);
+  --shadow-md: 0 4px 12px rgba(26, 23, 20, 0.08);
+  --shadow-lg: 0 12px 32px rgba(26, 23, 20, 0.12);
+  --shadow-menu: var(--shadow-md);
+
+  /* ── Radius scale — pick from these four, nothing else ───────────── */
+  --radius-sm: 4px;   /* chips, badges, tiny controls */
+  --radius:    6px;   /* buttons, inputs, nav rows */
+  --radius-md: 8px;   /* cards, panels */
+  --radius-lg: 12px;  /* modals, large containers */
+  /* Avatars, status dots, and one deliberate exception: the chat composer
+     and its send button. A pill composer is the load-bearing shape of every
+     modern assistant UI — squaring it off is what makes chat read as a
+     form. It stays a *bordered* pill on --surface, never an accent fill,
+     so rule 1 still holds. Don't extend this to buttons, chips, or nav. */
+  --radius-full: 9999px;
+
+  /* ── Type scale — every size has a job ───────────────────────────────
+     Sizes in px. UI line-height stays tight (1.35–1.45); only prose and
+     chat message bodies relax. */
+  --text-2xs:  11px;  /* uppercase section labels, dense metadata */
+  --text-xs:   12px;  /* secondary metadata, table cells */
+  --text-sm:   13px;  /* DEFAULT UI text — nav, buttons, labels */
+  --text-base: 14px;  /* body copy */
+  --text-md:   16px;  /* card titles, chat message content */
+  --text-lg:   20px;  /* page titles */
+  --text-xl:   26px;  /* in-app hero / empty-state headlines */
+  /* The two display sizes exist for the marketing pages and the one hero
+     stat tile — surfaces that legitimately need to shout. Without them
+     every landing headline reached for a raw text-4xl/5xl, which is how
+     an arbitrary size ends up in an app that has a scale. Do NOT use
+     these inside the product shell. */
+  --text-2xl:     32px;  /* marketing section headlines */
+  --text-display: 44px;  /* marketing hero, hero stat number */
 }
 
+/* ── Dark theme ───────────────────────────────────────────────────────
+   Applied only through an explicit, stored choice (see themeInit in
+   app/layout.tsx). Deliberately NOT a prefers-color-scheme block: light
+   is the unconditional default, matching both sibling products, so a
+   system-dark browser's first visit doesn't render dark before anyone
+   actually chose it. */
 :root[data-theme="dark"] {
-  --bg: #0c0d10;
-  --surface: #16181c;
-  --surface-raised: #1c1f24;
-  --ink: #f2f2f0;
-  --muted: #9a9ea8;
-  --border: #2a2d33;
-  --accent: #6d8bf0;
-  --accent-ink: #0c0d10;
-  --accent-soft: #1b2436;
+  color-scheme: dark;
 
-  --success: #4ade8a;
-  --warning: #f0b13e;
-  --danger: #f0685f;
+  --bg:             #111010;
+  --surface:        #1c1b1a;
+  --surface-raised: #252422;
+  --surface-sunken: #252422;
+  --bubble:         #262420;
 
-  --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.4);
+  /* On near-black paper the vivid orange already clears AA for plain
+     text, so accent and accent-solid can share one value — only light
+     mode needed the deepened split. */
+  --accent:          #ff6b35;
+  --accent-solid:    #ff6b35;
+  --accent-solid-fg: #1a1208;
+  --accent-hover:    #e55a28;
+  --accent-soft:     #2a1a12;
+  --accent-ring:     rgba(255, 107, 53, 0.45);
+  --accent-ink:      #1a1208;
+
+  --ink-solid: #f0ede8;
+
+  --ink:   #f0ede8;
+  --muted: #8a837b;
+
+  --border:        #333130;
+  --border-strong: #45423d;
+
+  --success: #6cbf92;
+  --warning: #d5aa4e;
+  --danger:  #e08a68;
+  /* Ink, not white: white on this lighter salmon measures 2.62:1 and fails
+     outright, where ink measures 7.06:1. This is exactly why the label is
+     a token — the correct answer inverts between themes. */
+  --danger-fg: #1a1208;
+
+  --scrim: rgba(0, 0, 0, 0.55);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --shadow-menu: var(--shadow-md);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0c0d10;
-    --surface: #16181c;
-    --surface-raised: #1c1f24;
-    --ink: #f2f2f0;
-    --muted: #9a9ea8;
-    --border: #2a2d33;
-    --accent: #6d8bf0;
-    --accent-ink: #0c0d10;
-    --accent-soft: #1b2436;
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
 
-    --success: #4ade8a;
-    --warning: #f0b13e;
-    --danger: #f0685f;
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    /* 14px, not 15px. Professional tools are dense — the extra pixel costs
+       a visible row of data on every list. */
+    font-size: var(--text-base);
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* tnum: figures align in columns — non-negotiable for anything
+       financial. cv02/03/04/11 are Inter's more legible letterforms. */
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
+  }
 
-    --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.4);
+  /* Headings carry weight and tight tracking. Leaning on size alone is
+     what makes hierarchy read as flat. */
+  h1, h2, h3, h4 {
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    font-weight: 600;
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: var(--radius-full);
+    /* Inset via a transparent border so the bar doesn't crowd content. */
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+    background-clip: padding-box;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+
+  /* No fuzzy focus ring or tap flash on mouse clicks — controls rely on
+     their hover background instead. Keyboard users still get a clear ring. */
+  * { -webkit-tap-highlight-color: transparent; }
+  :focus:not(:focus-visible) { outline: none; }
+  :focus-visible {
+    outline: 2px solid var(--accent-solid);
+    outline-offset: 1px;
+    border-radius: var(--radius-sm);
   }
 }
 
-* {
-  box-sizing: border-box;
+/* ── Shared primitives ────────────────────────────────────────────────
+   Patterns the shell repeats, kept here so a nav row in the sidebar and a
+   tab in a sub-nav can't drift apart over time.
+
+   Deliberately NOT inside `@layer components`: under Tailwind v4's native
+   cascade layers these get dropped entirely, which silently leaves nav as
+   unstyled inline text. Unlayered rules always apply. */
+
+/* Navigation row: quiet by default, tinted when selected. No fills, no
+   gradients — selection reads through background + weight. */
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 450;
+  color: var(--muted);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.nav-row:hover {
+  background: var(--surface-sunken);
+  color: var(--ink);
+}
+.nav-row[data-active="true"] {
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-weight: 550;
 }
 
-body {
-  background: var(--bg);
+/* Segmented control — the enterprise answer to gradient pills. One inset
+   track, the selected item lifted onto the raised surface. */
+.segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+}
+.segmented-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.segmented-item:hover { color: var(--ink); }
+.segmented-item[data-active="true"] {
+  background: var(--surface-raised);
   color: var(--ink);
-  font-size: var(--text-base);
-  line-height: 1.5;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Form controls ───────────────────────────────────────────────────
+   Applied globally so a text field in Settings and one in a modal can't
+   disagree. Focus darkens the border rather than adding a glow — the same
+   quiet treatment the composer uses. Checkboxes and radios pick up the
+   brand instead of the browser's default blue. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+textarea,
+select {
+  font-size: var(--text-sm);
+  color: var(--ink);
+  transition: border-color 120ms ease;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+textarea:focus,
+select:focus {
+  border-color: var(--border-strong);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--accent-solid);
+}
+
+/* Uppercase section label — the quiet organiser in dense sidebars. */
+.eyebrow {
+  display: block;
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Panel label — same idea, slightly heavier, for card/panel headers. */
+.panel-label {
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The chat composer. It's the one control the user is always aiming at, so
+   it doesn't need announcing: the border darkens on focus and nothing else
+   moves — no glow, no colour wash, no layout shift. */
+.composer {
+  border-color: var(--border);
+  transition: border-color 120ms ease;
+}
+.composer:focus-within {
+  border-color: var(--border-strong);
+}
+/* The global :focus-visible rule wins over Tailwind's outline-none, which
+   would draw a hard rectangle INSIDE the rounded pill — a square box in a
+   round one is what makes typing look broken. The pill is the control and
+   carries the focus state, so the field inside must not draw its own.
+   Not an accessibility regression: .composer:focus-within still responds,
+   and it responds because this exact element has focus. */
+.composer textarea:focus,
+.composer textarea:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 /* Reserve tabular figures for columns that must align vertically (table
@@ -83,20 +370,25 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-::selection {
-  background: var(--accent-soft);
-  color: var(--ink);
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
-/* Chart tokens — validated categorical palette, fixed slot order.
-   See the dataviz design skill for the source palette and rationale. */
+/* ── Chart tokens ─────────────────────────────────────────────────────
+   Validated categorical palette, fixed slot order — the series hues are
+   colourblind-safe and were verified with the palette validator, so they
+   are NOT retuned to the brand here. Only the surface/text/grid tokens
+   follow the theme, so charts sit on the same paper as everything else. */
 .viz-root {
-  --chart-surface: #fcfcfb;
-  --chart-text-primary: #0b0b0b;
-  --chart-text-secondary: #52514e;
-  --chart-muted: #898781;
-  --chart-gridline: #e1e0d9;
-  --chart-baseline: #c3c2b7;
+  --chart-surface: var(--surface);
+  --chart-text-primary: var(--ink);
+  --chart-text-secondary: var(--muted);
+  --chart-muted: var(--muted);
+  --chart-gridline: var(--border);
+  --chart-baseline: var(--border-strong);
   --series-1: #2a78d6; /* blue */
   --series-2: #eb6834; /* orange */
   --series-3: #1baf7a; /* aqua */
@@ -108,12 +400,6 @@ body {
 }
 
 :root[data-theme="dark"] .viz-root {
-  --chart-surface: #1a1a19;
-  --chart-text-primary: #ffffff;
-  --chart-text-secondary: #c3c2b7;
-  --chart-muted: #898781;
-  --chart-gridline: #2c2c2a;
-  --chart-baseline: #383835;
   --series-1: #3987e5;
   --series-2: #d95926;
   --series-3: #199e70;
@@ -122,23 +408,4 @@ body {
   --series-6: #008300;
   --series-7: #9085e9;
   --series-8: #e66767;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .viz-root {
-    --chart-surface: #1a1a19;
-    --chart-text-primary: #ffffff;
-    --chart-text-secondary: #c3c2b7;
-    --chart-muted: #898781;
-    --chart-gridline: #2c2c2a;
-    --chart-baseline: #383835;
-    --series-1: #3987e5;
-    --series-2: #d95926;
-    --series-3: #199e70;
-    --series-4: #c98500;
-    --series-5: #d55181;
-    --series-6: #008300;
-    --series-7: #9085e9;
-    --series-8: #e66767;
-  }
 }

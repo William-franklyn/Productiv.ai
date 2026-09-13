@@ -6,18 +6,18 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import type { UIMessage } from "ai";
 import {
+  ArrowUp,
   ExternalLink,
   Loader2,
   Mic,
   Paperclip,
-  Send,
   Square,
   Volume2,
   VolumeX,
   X,
 } from "lucide-react";
 import clsx from "clsx";
-import { Button } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
 import { ChatMessage } from "./ChatMessage";
 import { EmptyState } from "./EmptyState";
 import { EmailDraftPanel } from "./EmailDraftPanel";
@@ -213,29 +213,32 @@ export function ChatPanel({
 
   return (
     <div className="flex h-screen">
-      <div className="flex flex-1 flex-col">
-        <div className="flex items-center justify-end gap-1 border-b border-[var(--border)] px-4 py-2">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex shrink-0 items-center justify-end gap-1 border-b border-[var(--border)] px-4 py-2">
           <button
             onClick={toggleVoiceReplies}
             title={voiceReplies ? "Voice replies on — click to mute" : "Voice replies off — click to enable"}
-            className="flex items-center gap-1.5 rounded-[var(--radius)] px-2 py-1 text-[var(--text-xs)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
+            className={clsx(
+              "flex items-center gap-1.5 rounded-[var(--radius)] px-2 py-1 text-[var(--text-xs)] transition-colors hover:bg-[var(--surface-sunken)]",
+              voiceReplies ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--ink)]",
+            )}
           >
             {voiceReplies ? <Volume2 size={13} /> : <VolumeX size={13} />}
             Voice replies
           </button>
           <button
             onClick={() => window.open(`/assistant/${conversationId}`, "_blank", "noopener,noreferrer")}
-            className="flex items-center gap-1.5 rounded-[var(--radius)] px-2 py-1 text-[var(--text-xs)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
+            className="flex items-center gap-1.5 rounded-[var(--radius)] px-2 py-1 text-[var(--text-xs)] text-[var(--muted)] transition-colors hover:bg-[var(--surface-sunken)] hover:text-[var(--ink)]"
           >
             <ExternalLink size={13} />
             Open in new tab
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto px-6 py-8">
           {messages.length === 0 ? (
             <EmptyState onPick={submit} />
           ) : (
-            <div className="mx-auto flex max-w-2xl flex-col gap-6">
+            <div className="mx-auto flex max-w-3xl flex-col gap-7">
               {messages.map((m) => (
                 <ChatMessage
                   key={m.id}
@@ -247,7 +250,7 @@ export function ChatPanel({
             </div>
           )}
           {error && (
-            <p className="mx-auto max-w-2xl text-[var(--text-sm)] text-[var(--danger)]">
+            <p className="mx-auto mt-4 max-w-3xl text-[var(--text-sm)] text-[var(--danger)]">
               {error.message}
             </p>
           )}
@@ -259,33 +262,38 @@ export function ChatPanel({
             e.preventDefault();
             submit(input);
           }}
-          className="border-t border-[var(--border)] p-4"
+          className="shrink-0 px-6 pb-6 pt-2"
         >
-          <div className="mx-auto flex max-w-2xl flex-col gap-2">
+          <div className="mx-auto flex max-w-3xl flex-col gap-2">
             {pendingFile && (
-              <div className="flex w-fit items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--accent-soft)] px-2.5 py-1 text-[var(--text-xs)]">
-                <Paperclip size={12} />
-                {pendingFile.name}
-                <button
-                  type="button"
+              <div className="flex w-fit items-center gap-1.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] py-1 pl-2 pr-1 text-[var(--text-sm)]">
+                <Paperclip size={13} className="shrink-0 text-[var(--muted)]" />
+                <span className="max-w-[220px] truncate">{pendingFile.name}</span>
+                <IconButton
                   onClick={() => {
                     setPendingFile(null);
                     if (fileInputRef.current) fileInputRef.current.value = "";
                   }}
-                  aria-label="Remove attachment"
-                  className="text-[var(--muted)] hover:text-[var(--danger)]"
+                  label={`Remove ${pendingFile.name}`}
+                  radius="sm"
+                  padding="xs"
                 >
                   <X size={12} />
-                </button>
+                </IconButton>
               </div>
             )}
             {voiceError && <p className="text-[var(--text-xs)] text-[var(--danger)]">{voiceError}</p>}
 
+            {/* A bordered pill on --surface, never an accent fill — the one
+                documented --radius-full exception (see globals.css). No focus
+                glow: the border quietly darkens via .composer instead, so the
+                eye stays on the words rather than the chrome. */}
             <div
               className={clsx(
-                "flex items-end gap-1 rounded-[var(--radius-lg)] border bg-[var(--surface)] p-1.5 transition-colors",
-                isRecording ? "border-[var(--danger)]" : "border-[var(--border)] focus-within:border-[var(--accent)]",
+                "composer flex items-center gap-2 rounded-full border py-2 pl-3 pr-2",
+                isRecording && "border-[var(--danger)]!",
               )}
+              style={{ background: "var(--surface)" }}
             >
               <input
                 ref={fileInputRef}
@@ -297,44 +305,26 @@ export function ChatPanel({
                   if (file) setPendingFile(file);
                 }}
               />
-              <button
-                type="button"
+              <IconButton
                 disabled={busy || uploadingFile}
                 onClick={() => fileInputRef.current?.click()}
-                aria-label="Attach a document"
+                label="Attach a document"
                 title="Upload a document to the knowledge base"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)] disabled:opacity-50"
+                radius="full"
               >
-                <Paperclip size={16} />
-              </button>
-
-              <button
-                type="button"
-                disabled={busy || uploadingFile || isTranscribing}
-                onClick={isRecording ? stopRecording : startRecording}
-                aria-label={isRecording ? "Stop recording" : "Record a voice message"}
-                title={isRecording ? "Stop recording" : "Talk instead of typing"}
-                className={clsx(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full disabled:opacity-50",
-                  isRecording
-                    ? "animate-pulse bg-[var(--danger)] text-white"
-                    : "text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]",
-                )}
-              >
-                {isTranscribing ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : isRecording ? (
-                  <Square size={14} />
-                ) : (
-                  <Mic size={16} />
-                )}
-              </button>
+                <Paperclip size={18} />
+              </IconButton>
 
               <textarea
                 rows={1}
                 value={input}
                 disabled={busy || uploadingFile}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  const el = e.target;
+                  el.style.height = "auto";
+                  el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
@@ -350,18 +340,43 @@ export function ChatPanel({
                         ? "Uploading document…"
                         : busy
                           ? "Waiting for a response…"
-                          : "Ask about your knowledge base, or ask for a chart…"
+                          : "Ask anything…"
                 }
-                className="max-h-40 flex-1 resize-none bg-transparent px-2 py-2 text-[var(--text-base)] leading-relaxed outline-none disabled:opacity-60"
+                className="max-h-[200px] flex-1 resize-none self-center bg-transparent py-1.5 text-[var(--text-md)] leading-6 outline-none placeholder:text-[var(--muted)] disabled:opacity-60"
               />
 
-              <Button
-                type="submit"
-                className="rounded-full!"
-                disabled={busy || uploadingFile || (!input.trim() && !pendingFile)}
+              <IconButton
+                disabled={busy || uploadingFile || isTranscribing}
+                onClick={isRecording ? stopRecording : startRecording}
+                label={isRecording ? "Stop recording" : "Record a voice message"}
+                title={isRecording ? "Stop recording" : "Talk instead of typing"}
+                radius="full"
+                active={isRecording}
               >
-                {uploadingFile ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-              </Button>
+                {isTranscribing ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : isRecording ? (
+                  <Square size={15} />
+                ) : (
+                  <Mic size={18} />
+                )}
+              </IconButton>
+
+              {/* Icon-only on a neutral ink disc — deliberately NOT accent, so
+                  the composer doesn't compete with the view's primary action. */}
+              <IconButton
+                type="submit"
+                solid
+                disabled={busy || uploadingFile || (!input.trim() && !pendingFile)}
+                label="Send"
+                title={uploadingFile ? "Waiting for the upload to finish" : "Send"}
+              >
+                {uploadingFile || busy ? (
+                  <Loader2 size={17} className="animate-spin" />
+                ) : (
+                  <ArrowUp size={19} strokeWidth={2.4} />
+                )}
+              </IconButton>
             </div>
           </div>
         </form>

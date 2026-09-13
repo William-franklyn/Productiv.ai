@@ -68,7 +68,7 @@ export function ChartRenderer({ spec }: { spec: ChartSpec }) {
         <p className="text-[var(--text-sm)] text-[var(--chart-text-secondary)]">
           {spec.title}
         </p>
-        <p className="mt-1 text-5xl font-semibold text-[var(--chart-text-primary)]">
+        <p className="mt-1 text-[var(--text-display)] font-semibold text-[var(--chart-text-primary)]">
           {spec.unit === "$" ? "$" : ""}
           {spec.value?.toLocaleString()}
           {spec.unit && spec.unit !== "$" ? spec.unit : ""}

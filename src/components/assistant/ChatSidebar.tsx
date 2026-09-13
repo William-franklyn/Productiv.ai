@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutGrid, MessageSquarePlus, Trash2 } from "lucide-react";
-import clsx from "clsx";
 
 interface ConversationRow {
   id: string;
@@ -36,30 +35,25 @@ export function ChatSidebar() {
   }
 
   return (
-    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] p-3">
-      <div className="mb-3 px-2.5 py-1 text-[var(--text-sm)] font-semibold">iRABU</div>
+    <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg)] p-3">
+      <div className="mb-3 px-2 py-1 text-[var(--text-md)] font-semibold tracking-tight">iRABU</div>
 
-      <Link
-        href="/dashboard"
-        className="flex items-center gap-2 rounded-[var(--radius)] px-2.5 py-2 text-[var(--text-sm)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
-      >
-        <LayoutGrid size={15} />
+      <Link href="/dashboard" className="nav-row">
+        <LayoutGrid size={15} className="shrink-0" />
         Suite
       </Link>
 
       <button
         onClick={() => router.push("/assistant")}
-        className="mt-3 flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-2.5 py-2 text-[var(--text-sm)] hover:bg-[var(--accent-soft)]"
+        className="mt-2 flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-2 text-[var(--text-sm)] font-medium transition-colors hover:border-[var(--border-strong)]"
       >
-        <MessageSquarePlus size={15} />
+        <MessageSquarePlus size={15} className="shrink-0" />
         New chat
       </button>
 
-      <div className="mt-4 flex-1 overflow-y-auto">
-        <div className="px-2 text-[var(--text-xs)] font-medium uppercase tracking-wide text-[var(--muted)]">
-          History
-        </div>
-        <div className="mt-1 flex flex-col gap-0.5">
+      <div className="mt-5 flex min-h-0 flex-1 flex-col">
+        <span className="eyebrow px-2">History</span>
+        <div className="mt-1.5 flex flex-col gap-0.5 overflow-y-auto">
           {conversations === null ? (
             <div className="px-2 py-2 text-[var(--text-xs)] text-[var(--muted)]">Loading…</div>
           ) : conversations.length === 0 ? (
@@ -68,19 +62,12 @@ export function ChatSidebar() {
             conversations.map((c) => (
               <div
                 key={c.id}
-                className={clsx(
-                  "group flex items-center rounded-[var(--radius-sm)] pr-1",
-                  c.id === activeId
-                    ? "bg-[var(--accent-soft)]"
-                    : "hover:bg-[var(--accent-soft)]",
-                )}
+                data-active={c.id === activeId}
+                className="nav-row group pr-1"
               >
                 <Link
                   href={`/assistant/${c.id}`}
-                  className={clsx(
-                    "min-w-0 flex-1 truncate px-2 py-1.5 text-[var(--text-sm)]",
-                    c.id === activeId ? "font-medium text-[var(--ink)]" : "text-[var(--muted)] group-hover:text-[var(--ink)]",
-                  )}
+                  className="min-w-0 flex-1 truncate py-0.5"
                 >
                   {c.title}
                 </Link>
@@ -91,7 +78,7 @@ export function ChatSidebar() {
                   }}
                   aria-label="Delete chat"
                   title="Delete chat"
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--muted)] opacity-0 hover:text-[var(--danger)] group-hover:opacity-100"
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[var(--radius-sm)] opacity-0 transition-opacity hover:text-[var(--danger)] group-hover:opacity-100"
                 >
                   <Trash2 size={13} />
                 </button>

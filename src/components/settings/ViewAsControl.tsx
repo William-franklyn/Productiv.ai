@@ -38,7 +38,7 @@ export function ViewAsControl({ realRole }: { realRole: "owner" | "admin" | "mem
           <button
             key={role}
             onClick={() => setRole(role)}
-            className="rounded-[var(--radius)] border border-[var(--border)] px-3 py-1.5 text-[var(--text-sm)] capitalize hover:bg-[var(--accent-soft)]"
+            className="rounded-[var(--radius)] border border-[var(--border)] px-3 py-1.5 text-[var(--text-sm)] capitalize hover:bg-[var(--surface-sunken)]"
           >
             View as {role}
           </button>

@@ -103,7 +103,7 @@ export function KnowledgeManager({ canMarkSensitive }: { canMarkSensitive: boole
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Knowledge</h1>
+          <h1 className="text-[var(--text-lg)] font-semibold">Knowledge</h1>
           <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">
             Upload documents to make them askable in the assistant.
           </p>

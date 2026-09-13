@@ -14,10 +14,10 @@ export function TopBar({ fullName }: { fullName: string | null }) {
       </span>
       <button
         onClick={openPalette}
-        className="flex items-center gap-1.5 rounded-[var(--radius)] border border-[var(--border)] px-2.5 py-1.5 text-[var(--text-xs)] text-[var(--muted)] hover:bg-[var(--accent-soft)]"
+        className="flex items-center gap-1.5 rounded-[var(--radius)] border border-[var(--border)] px-2.5 py-1.5 text-[var(--text-xs)] text-[var(--muted)] hover:bg-[var(--surface-sunken)]"
       >
         Search
-        <kbd className="rounded border border-[var(--border)] px-1 font-sans">⌘K</kbd>
+        <kbd className="rounded-[var(--radius-sm)] border border-[var(--border)] px-1 font-sans">⌘K</kbd>
       </button>
       <ThemeToggle />
       <SignOutButton />

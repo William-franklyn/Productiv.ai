@@ -82,7 +82,7 @@ export function SignUpForm() {
           required
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
+          className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
         />
       </label>
       {!inviteToken && (
@@ -92,7 +92,7 @@ export function SignUpForm() {
             placeholder="Acme Inc."
             value={orgName}
             onChange={(e) => setOrgName(e.target.value)}
-            className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
+            className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
           />
         </label>
       )}
@@ -103,7 +103,7 @@ export function SignUpForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
+          className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
         />
       </label>
       <label className="flex flex-col gap-1.5 text-[var(--text-sm)]">
@@ -114,7 +114,7 @@ export function SignUpForm() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="h-10 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
+          className="h-9 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3"
         />
       </label>
       {error && <p className="text-[var(--text-sm)] text-[var(--danger)]">{error}</p>}

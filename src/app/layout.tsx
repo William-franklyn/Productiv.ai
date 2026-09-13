@@ -13,13 +13,18 @@ export const metadata: Metadata = {
     "iRABU — ask questions across your team's knowledge and get cited answers, with an assistant that can act on them.",
 };
 
+// Light is the unconditional default, matching getirabu.com and irabu.ai —
+// NOT whatever the visitor's OS happens to prefer. Reading the OS here meant
+// a system-dark browser's first-ever visit rendered dark before anyone had
+// actually chosen it. Dark now only applies through an explicit stored choice.
 const themeInit = `
 (function () {
   try {
     var stored = localStorage.getItem("irabu-theme");
-    var theme = stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    document.documentElement.setAttribute("data-theme", theme);
-  } catch (e) {}
+    document.documentElement.setAttribute("data-theme", stored === "dark" ? "dark" : "light");
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "light");
+  }
 })();
 `;
 

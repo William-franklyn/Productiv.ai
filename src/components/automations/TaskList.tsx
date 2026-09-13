@@ -81,7 +81,7 @@ export function TaskList() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Automations</h1>
+          <h1 className="text-[var(--text-lg)] font-semibold">Automations</h1>
           <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">
             Tasks the team or the assistant creates land here.
           </p>

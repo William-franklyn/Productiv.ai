@@ -109,7 +109,7 @@ export function SponsorPage({ slug }: { slug: string }) {
   return (
     <div className="mx-auto min-h-screen max-w-xl p-6 py-12">
       <p className="text-[var(--text-xs)] uppercase tracking-wide text-[var(--muted)]">Sponsored workspace</p>
-      <h1 className="mt-1 text-2xl font-semibold">{data.orgName}</h1>
+      <h1 className="mt-1 text-[var(--text-xl)] font-semibold">{data.orgName}</h1>
       <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">
         Every action this workspace's AI takes is funded by a sponsor and accounted for publicly
         below — without ever revealing what anyone asked. Funds platform usage only; sponsor credit
@@ -118,7 +118,7 @@ export function SponsorPage({ slug }: { slug: string }) {
 
       <Card className="mt-6 p-5">
         <p className="text-[var(--text-sm)] text-[var(--muted)]">Work funded</p>
-        <p className="tabular-nums mt-1 text-xl font-semibold">{totalCompleted.toLocaleString()} actions</p>
+        <p className="tabular-nums mt-1 text-[var(--text-lg)] font-semibold">{totalCompleted.toLocaleString()} actions</p>
         <div className="mt-3 grid grid-cols-2 gap-2 text-[var(--text-sm)] sm:grid-cols-4">
           <div className="flex items-center gap-1.5">
             <MessageCircle size={14} className="text-[var(--accent)]" />
@@ -141,11 +141,11 @@ export function SponsorPage({ slug }: { slug: string }) {
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Card className="p-4 text-center">
-          <p className="tabular-nums text-xl font-semibold">{data.refusedCount.toLocaleString()}</p>
+          <p className="tabular-nums text-[var(--text-lg)] font-semibold">{data.refusedCount.toLocaleString()}</p>
           <p className="mt-1 text-[var(--text-xs)] text-[var(--muted)]">Questions unanswered</p>
         </Card>
         <Card className="p-4 text-center">
-          <p className="tabular-nums text-xl font-semibold">{data.actionsLeft.toLocaleString()}</p>
+          <p className="tabular-nums text-[var(--text-lg)] font-semibold">{data.actionsLeft.toLocaleString()}</p>
           <p className="mt-1 text-[var(--text-xs)] text-[var(--muted)]">Actions left</p>
         </Card>
       </div>

@@ -17,7 +17,7 @@ export function SignOutButton() {
   return (
     <button
       onClick={signOut}
-      className="flex h-8 w-8 items-center justify-center rounded-[var(--radius)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
+      className="flex h-8 w-8 items-center justify-center rounded-[var(--radius)] text-[var(--muted)] hover:bg-[var(--surface-sunken)] hover:text-[var(--ink)]"
       aria-label="Sign out"
     >
       <LogOut size={16} />

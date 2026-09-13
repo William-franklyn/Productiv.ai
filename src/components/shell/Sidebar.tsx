@@ -79,7 +79,7 @@ function WorkspaceSwitcher({
         onClick={() => setOpen((v) => !v)}
         title={collapsed ? orgName : undefined}
         className={clsx(
-          "flex items-center gap-1.5 rounded-[var(--radius-sm)] text-left hover:bg-[var(--accent-soft)]",
+          "flex items-center gap-1.5 rounded-[var(--radius-sm)] text-left transition-colors hover:bg-[var(--surface-sunken)]",
           collapsed ? "h-8 w-8 justify-center" : "w-full px-1.5 py-1",
         )}
       >
@@ -93,17 +93,16 @@ function WorkspaceSwitcher({
         )}
       </button>
 
+      {/* A true overlay — one of the few places a shadow is correct. */}
       {open && (
-        <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg">
-          <div className="px-2 py-1 text-[var(--text-xs)] font-medium uppercase tracking-wide text-[var(--muted)]">
-            Workspaces
-          </div>
+        <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-raised)] p-1 shadow-[var(--shadow-lg)]">
+          <span className="eyebrow px-2 py-1">Workspaces</span>
           {memberships.map((m) => (
             <button
               key={m.orgId}
               onClick={() => switchTo(m.orgId)}
               disabled={busy}
-              className="flex w-full items-center justify-between gap-2 rounded-[var(--radius-sm)] px-2 py-1.5 text-left text-[var(--text-sm)] hover:bg-[var(--accent-soft)] disabled:opacity-60"
+              className="flex w-full items-center justify-between gap-2 rounded-[var(--radius-sm)] px-2 py-1.5 text-left text-[var(--text-sm)] transition-colors hover:bg-[var(--surface-sunken)] disabled:opacity-60"
             >
               <span className="truncate">{m.orgName}</span>
               {m.orgId === orgId && <Check size={14} className="shrink-0 text-[var(--accent)]" />}
@@ -120,12 +119,12 @@ function WorkspaceSwitcher({
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && createWorkspace()}
                 placeholder="Workspace name"
-                className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg)] px-2 py-1 text-[var(--text-sm)]"
+                className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-[var(--text-sm)] outline-none focus:border-[var(--border-strong)]"
               />
               <button
                 onClick={createWorkspace}
                 disabled={busy || !newName.trim()}
-                className="rounded-[var(--radius-sm)] bg-[var(--accent)] px-2 py-1 text-[var(--text-sm)] font-medium text-[var(--accent-ink)] disabled:opacity-60"
+                className="rounded-[var(--radius-sm)] bg-[var(--accent-solid)] px-2 py-1.5 text-[var(--text-sm)] font-medium text-[var(--accent-solid-fg)] transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 Create
               </button>
@@ -133,7 +132,7 @@ function WorkspaceSwitcher({
           ) : (
             <button
               onClick={() => setCreating(true)}
-              className="flex w-full items-center gap-1.5 rounded-[var(--radius-sm)] px-2 py-1.5 text-left text-[var(--text-sm)] text-[var(--muted)] hover:bg-[var(--accent-soft)]"
+              className="flex w-full items-center gap-1.5 rounded-[var(--radius-sm)] px-2 py-1.5 text-left text-[var(--text-sm)] text-[var(--muted)] transition-colors hover:bg-[var(--surface-sunken)] hover:text-[var(--ink)]"
             >
               <Plus size={14} /> New workspace
             </button>
@@ -171,16 +170,16 @@ export function Sidebar({
   return (
     <aside
       className={clsx(
-        "flex flex-col border-r border-[var(--border)] bg-[var(--surface)] p-4 transition-[width] duration-150",
-        collapsed ? "w-16 items-center" : "w-56",
+        "flex shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg)] p-3 transition-[width] duration-150",
+        collapsed ? "w-14 items-center" : "w-56",
       )}
     >
       <div className={clsx("flex items-center", collapsed ? "flex-col gap-2" : "justify-between px-2")}>
-        {!collapsed && <div className="text-[var(--text-base)] font-semibold">iRABU</div>}
+        {!collapsed && <div className="text-[var(--text-md)] font-semibold tracking-tight">iRABU</div>}
         <button
           onClick={toggle}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--muted)] transition-colors hover:bg-[var(--surface-sunken)] hover:text-[var(--ink)]"
         >
           {collapsed ? <ChevronsRight size={15} /> : <ChevronsLeft size={15} />}
         </button>
@@ -190,7 +189,7 @@ export function Sidebar({
         <WorkspaceSwitcher orgId={orgId} orgName={orgName} memberships={memberships} collapsed={collapsed} />
       </div>
 
-      <nav className={clsx("mt-6 flex flex-col gap-1", collapsed && "w-full items-center")}>
+      <nav className={clsx("mt-6 flex flex-col gap-0.5", collapsed && "w-full items-center")}>
         {navItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
@@ -198,15 +197,10 @@ export function Sidebar({
               key={item.href}
               href={item.href}
               title={collapsed ? item.label : undefined}
-              className={clsx(
-                "flex items-center gap-2.5 rounded-[var(--radius)] text-[var(--text-sm)] transition-colors",
-                collapsed ? "h-9 w-9 justify-center" : "px-2.5 py-2",
-                active
-                  ? "bg-[var(--accent-soft)] text-[var(--ink)] font-medium"
-                  : "text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]",
-              )}
+              data-active={active}
+              className={clsx("nav-row", collapsed && "h-9 w-9 justify-center p-0")}
             >
-              <item.icon size={16} />
+              <item.icon size={16} className="shrink-0" />
               {!collapsed && item.label}
             </Link>
           );

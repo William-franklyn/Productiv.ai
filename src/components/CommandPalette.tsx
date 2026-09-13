@@ -83,7 +83,7 @@ export function CommandPalette({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 pt-[15vh]"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-[var(--scrim)] pt-[15vh]"
       onClick={onClose}
     >
       <div

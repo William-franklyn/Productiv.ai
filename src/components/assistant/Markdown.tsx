@@ -3,7 +3,11 @@ import remarkGfm from "remark-gfm";
 
 export function Markdown({ text }: { text: string }) {
   return (
-    <div className="flex flex-col gap-2 text-[var(--text-base)] leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+    // No font-size here — it inherits the caller's (16px in chat), so message
+    // body copy can't silently disagree with the turn around it.
+    // break-words is inherited by every child, so one long pasted URL can't
+    // force the whole transcript into horizontal scroll on a narrow viewport.
+    <div className="flex flex-col gap-2 break-words leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -31,14 +35,14 @@ export function Markdown({ text }: { text: string }) {
             const isBlock = /language-/.test(className ?? "");
             if (isBlock) {
               return (
-                <pre className="overflow-x-auto rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-raised)] p-3 text-[var(--text-sm)]">
+                <pre className="overflow-x-auto rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-sunken)] p-3 text-[var(--text-sm)]">
                   <code className="font-mono">{children}</code>
                 </pre>
               );
             }
             return (
               <code
-                className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-raised)] px-1.5 py-0.5 font-mono text-[var(--text-sm)]"
+                className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-sunken)] px-1.5 py-0.5 font-mono text-[var(--text-sm)]"
                 {...props}
               >
                 {children}

@@ -53,7 +53,7 @@ export function Security() {
           <p className="text-[var(--text-sm)] font-medium uppercase tracking-wide text-[var(--accent)]">
             Security
           </p>
-          <h1 className="mt-3 text-4xl font-semibold leading-tight">
+          <h1 className="mt-3 text-[var(--text-2xl)] font-semibold leading-tight">
             What's true today, stated plainly.
           </h1>
           <p className="mt-4 text-[var(--text-lg)] text-[var(--muted)]">
