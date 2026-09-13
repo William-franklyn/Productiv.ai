@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.0",
+    "@ai-sdk/google": "^4.0.69",
     "@ai-sdk/react": "^4.0.0",
     "@solana/web3.js": "^1.99.0",
     "@supabase/ssr": "^0.5.2",
