@@ -30,6 +30,8 @@ function systemPrompt() {
 - list_transactions: use this when asked to list or show recent transactions.
 - analyze_spending: use this instead of list_transactions when asked about totals or where money went — it groups by vendor. Follow up with generate_chart to visualize the breakdown when it would help.
 - pay_vendor: use this when the user asks to pay, send money to, or reimburse a vendor. This NEVER actually sends money — it only opens a review panel where a human approves and sends it themselves.
+- receive_payment: use this when the user says they got paid, were reimbursed, or received money — this records immediately, no approval needed.
+- get_receipt: use this when the user asks for the details of a specific past transaction (who, when, transaction id, notes) — defaults to the most recent one if they don't name someone.
 
 Be concise and direct. When you cite knowledge, refer to the source naturally in your sentence (e.g. "According to the Q3 plan…") — the UI attaches full citation details on its own.`;
 }

@@ -229,6 +229,22 @@ export function getDraftedPayment(message: UIMessage): DraftedPayment | null {
   return latest;
 }
 
+export interface ReceivedPayment {
+  fromName: string;
+  amount: number;
+}
+
+export function getReceivedPayment(message: UIMessage): ReceivedPayment | null {
+  for (const part of message.parts) {
+    if (part.type !== "tool-receive_payment" || !isOutputAvailable(part)) continue;
+    const output = part.output as { ok: boolean; fromName?: string; amount?: number };
+    if (output.ok && output.fromName) {
+      return { fromName: output.fromName, amount: output.amount ?? 0 };
+    }
+  }
+  return null;
+}
+
 export function getText(message: UIMessage): string {
   return message.parts
     .filter((p): p is Extract<AnyPart, { type: "text" }> => p.type === "text")
@@ -255,6 +271,8 @@ export function isToolPending(message: UIMessage): string | null {
     "tool-list_transactions": "Fetching transactions…",
     "tool-analyze_spending": "Analyzing spending…",
     "tool-pay_vendor": "Drafting payment…",
+    "tool-receive_payment": "Recording payment…",
+    "tool-get_receipt": "Looking up transaction…",
   };
   for (const part of message.parts) {
     if (part.type in labels && !isOutputAvailable(part)) {

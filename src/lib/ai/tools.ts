@@ -7,7 +7,7 @@ import { sendMeetingInvite, sendMeetingCancellation } from "@/lib/email/meeting-
 import { summarizeDataset, groupByAggregate, type Aggregate } from "@/lib/knowledge/analyze";
 import type { Dataset } from "@/lib/knowledge/tabular";
 import type { FormField } from "@/lib/forms/types";
-import { listTransactions } from "@/lib/nessie/client";
+import { listTransactions, createDeposit } from "@/lib/nessie/client";
 import { getEffectiveBalance } from "@/lib/nessie/balance";
 
 async function fetchMembers(supabase: SupabaseClient, orgId: string) {
@@ -700,6 +700,87 @@ export function buildTools(ctx: {
         });
 
         return { ok: true as const, paymentId: data.id, vendorName, amount };
+      },
+    }),
+
+    receive_payment: tool({
+      description:
+        "Record money received into the workspace's connected Capital One (demo) account — use this when the user says they got paid, were reimbursed, or received a deposit. Unlike pay_vendor this records immediately since receiving money carries no approval risk.",
+      inputSchema: z.object({
+        fromName: z.string().describe("Who or what the money came from"),
+        amount: z.number().positive(),
+        notes: z.string().optional(),
+      }),
+      execute: async ({ fromName, amount, notes }) => {
+        const { data: connection } = await ctx.supabase
+          .from("nessie_connections")
+          .select("account_id")
+          .eq("organization_id", ctx.orgId)
+          .maybeSingle();
+        if (!connection) return { ok: false as const, reason: "not_connected" as const };
+
+        let depositId: string;
+        try {
+          depositId = await createDeposit({
+            accountId: connection.account_id,
+            amount,
+            description: notes || `From ${fromName}`,
+          });
+        } catch (err) {
+          return { ok: false as const, reason: "error" as const, error: String(err) };
+        }
+
+        await ctx.supabase.from("receipts").insert({
+          organization_id: ctx.orgId,
+          direction: "received",
+          counterparty: fromName,
+          amount,
+          notes: notes ?? null,
+          transaction_id: depositId,
+          created_by: ctx.userId,
+        });
+
+        await logActivity(ctx.supabase, {
+          organizationId: ctx.orgId,
+          actorId: ctx.userId,
+          action: "received_payment",
+          detail: `Received from ${fromName}: $${amount.toFixed(2)}`,
+        });
+
+        return { ok: true as const, fromName, amount };
+      },
+    }),
+
+    get_receipt: tool({
+      description:
+        "Look up the details of a specific past transaction — who it was with, the exact date and time, the transaction id, and any notes. Defaults to the most recent transaction if no name is given.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Name of the person or vendor to search for, if looking for a specific transaction"),
+      }),
+      execute: async ({ query }) => {
+        let dbQuery = ctx.supabase
+          .from("receipts")
+          .select("direction, counterparty, amount, notes, transaction_id, occurred_at")
+          .eq("organization_id", ctx.orgId)
+          .order("occurred_at", { ascending: false });
+
+        if (query) dbQuery = dbQuery.ilike("counterparty", `%${query}%`);
+
+        const { data, error } = await dbQuery.limit(query ? 5 : 1);
+        if (error) return { ok: false as const, reason: "error" as const, error: error.message };
+        if (!data || data.length === 0) return { ok: false as const, reason: "not_found" as const };
+
+        return {
+          ok: true as const,
+          receipts: data.map((r) => ({
+            direction: r.direction,
+            counterparty: r.counterparty,
+            amount: Number(r.amount),
+            notes: r.notes,
+            transactionId: r.transaction_id,
+            occurredAt: r.occurred_at,
+          })),
+        };
       },
     }),
 

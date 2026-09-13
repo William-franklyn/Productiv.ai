@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, CircleDollarSign, Loader2, Trash2, Wallet } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Check, CircleDollarSign, Loader2, Trash2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
@@ -13,12 +13,14 @@ interface Connection {
   error?: string;
 }
 
-interface Transaction {
+interface Receipt {
   id: string;
-  type: "purchase" | "transfer" | "deposit" | "withdrawal";
+  direction: "sent" | "received";
+  counterparty: string;
   amount: number;
-  description: string;
-  date: string;
+  notes: string | null;
+  transaction_id: string;
+  occurred_at: string;
 }
 
 interface Payment {
@@ -32,7 +34,7 @@ interface Payment {
 
 export function FinanceManager({ canManage }: { canManage: boolean }) {
   const [connection, setConnection] = useState<Connection | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[] | null>(null);
+  const [receipts, setReceipts] = useState<Receipt[] | null>(null);
   const [payments, setPayments] = useState<Payment[] | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,9 +45,9 @@ export function FinanceManager({ canManage }: { canManage: boolean }) {
     setConnection(conn);
 
     if (conn.connected) {
-      fetch("/api/finance/transactions")
+      fetch("/api/receipts")
         .then((r) => r.json())
-        .then((data) => setTransactions(data.transactions ?? []));
+        .then((data) => setReceipts(data.receipts ?? []));
     }
     fetch("/api/payments")
       .then((r) => r.json())
@@ -105,7 +107,6 @@ export function FinanceManager({ canManage }: { canManage: boolean }) {
   }
 
   const pendingPayments = (payments ?? []).filter((p) => p.status === "pending");
-  const paymentHistory = (payments ?? []).filter((p) => p.status !== "pending");
 
   return (
     <div className="p-8">
@@ -177,48 +178,50 @@ export function FinanceManager({ canManage }: { canManage: boolean }) {
           )}
 
           <div className="mt-6">
-            <h2 className="text-[var(--text-base)] font-medium">Recent transactions</h2>
-            <div className="mt-3 flex flex-col gap-1">
-              {!transactions ? (
+            <h2 className="text-[var(--text-base)] font-medium">Receipts</h2>
+            <p className="mt-1 text-[var(--text-xs)] text-[var(--muted)]">
+              A record of every payment sent or received, with the exact time and transaction id.
+            </p>
+            <div className="mt-3 flex flex-col gap-2">
+              {!receipts ? (
                 <Loader2 size={16} className="animate-spin text-[var(--muted)]" />
-              ) : transactions.length === 0 ? (
-                <Card className="p-6 text-center text-[var(--text-sm)] text-[var(--muted)]">No transactions yet.</Card>
+              ) : receipts.length === 0 ? (
+                <Card className="p-6 text-center text-[var(--text-sm)] text-[var(--muted)]">No receipts yet.</Card>
               ) : (
-                transactions.slice(0, 20).map((t) => (
-                  <div
-                    key={t.id}
-                    className="flex items-center justify-between border-b border-[var(--border)] py-2 text-[var(--text-sm)] last:border-0"
-                  >
-                    <span className="truncate">{t.description}</span>
-                    <span
-                      className={`tabular-nums shrink-0 ${t.amount < 0 ? "text-[var(--danger)]" : "text-[var(--success)]"}`}
-                    >
-                      {t.amount < 0 ? "-" : "+"}${Math.abs(t.amount).toFixed(2)}
-                    </span>
-                  </div>
+                receipts.map((r) => (
+                  <Card key={r.id} className="flex items-start gap-3 p-3.5">
+                    {r.direction === "sent" ? (
+                      <ArrowUpFromLine size={16} className="mt-0.5 shrink-0 text-[var(--danger)]" />
+                    ) : (
+                      <ArrowDownToLine size={16} className="mt-0.5 shrink-0 text-[var(--success)]" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-[var(--text-sm)]">
+                          {r.direction === "sent" ? "To " : "From "}
+                          <span className="font-medium">{r.counterparty}</span>
+                        </p>
+                        <span
+                          className={`tabular-nums shrink-0 text-[var(--text-sm)] font-medium ${
+                            r.direction === "sent" ? "text-[var(--danger)]" : "text-[var(--success)]"
+                          }`}
+                        >
+                          {r.direction === "sent" ? "-" : "+"}${r.amount.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-[var(--text-xs)] text-[var(--muted)]">
+                        {new Date(r.occurred_at).toLocaleString()}
+                        {r.notes ? ` · ${r.notes}` : ""}
+                      </p>
+                      <p className="mt-0.5 truncate text-[var(--text-xs)] text-[var(--muted)]">
+                        Transaction ID: {r.transaction_id}
+                      </p>
+                    </div>
+                  </Card>
                 ))
               )}
             </div>
           </div>
-
-          {paymentHistory.length > 0 && (
-            <div className="mt-6">
-              <h2 className="text-[var(--text-base)] font-medium">Payment history</h2>
-              <div className="mt-3 flex flex-col gap-1">
-                {paymentHistory.map((p) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center justify-between border-b border-[var(--border)] py-2 text-[var(--text-sm)] last:border-0"
-                  >
-                    <span className={p.status === "discarded" ? "text-[var(--muted)] line-through" : ""}>
-                      {p.vendor_name}
-                    </span>
-                    <span className="tabular-nums text-[var(--muted)]">${p.amount.toFixed(2)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>

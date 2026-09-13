@@ -75,6 +75,16 @@ export async function POST(
     })
     .eq("id", id);
 
+  await supabase.from("receipts").insert({
+    organization_id: auth.orgId,
+    direction: "sent",
+    counterparty: parsed.data.vendorName,
+    amount: parsed.data.amount,
+    notes: parsed.data.description ?? null,
+    transaction_id: purchaseId,
+    created_by: auth.userId,
+  });
+
   await logActivity(supabase, {
     organizationId: auth.orgId,
     actorId: auth.userId,

@@ -1,5 +1,6 @@
 import type { UIMessage } from "ai";
 import {
+  ArrowDownToLine,
   BarChart3,
   CalendarCheck,
   CalendarX,
@@ -31,6 +32,7 @@ import {
   getDataAnalysis,
   getDraftedPayment,
   getEmailDraft,
+  getReceivedPayment,
   getScheduledMeetings,
   getText,
   isToolPending,
@@ -59,6 +61,7 @@ export function ChatMessage({
   const createdForms = isUser ? [] : getCreatedForms(message);
   const balance = isUser ? null : getAccountBalance(message);
   const draftedPayment = isUser ? null : getDraftedPayment(message);
+  const receivedPayment = isUser ? null : getReceivedPayment(message);
   const pending = isUser ? null : isToolPending(message);
 
   if (isUser) {
@@ -193,6 +196,13 @@ export function ChatMessage({
           <CircleDollarSign size={15} className="text-[var(--accent)]" />
           Drafted payment: {draftedPayment.vendorName} · ${draftedPayment.amount.toFixed(2)}
         </button>
+      )}
+
+      {receivedPayment && (
+        <div className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2 text-[var(--text-sm)]">
+          <ArrowDownToLine size={15} className="text-[var(--success)]" />
+          Received from {receivedPayment.fromName}: <span className="font-medium tabular-nums">${receivedPayment.amount.toFixed(2)}</span>
+        </div>
       )}
 
       {emailDraft && (

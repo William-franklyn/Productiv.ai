@@ -180,3 +180,24 @@ export async function createPurchase(params: {
   );
   return purchase.objectCreated._id;
 }
+
+export async function createDeposit(params: {
+  accountId: string;
+  amount: number;
+  description?: string;
+}): Promise<string> {
+  const deposit = await nessieFetch<{ objectCreated: { _id: string } }>(
+    `/accounts/${params.accountId}/deposits`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        medium: "balance",
+        transaction_date: new Date().toISOString().slice(0, 10),
+        amount: params.amount,
+        description: params.description || "Deposit",
+        status: "completed",
+      }),
+    },
+  );
+  return deposit.objectCreated._id;
+}
