@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FileText, Loader2, ShieldOff, Trash2, Upload } from "lucide-react";
+import { FileText, Loader2, ShieldCheck, ShieldOff, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { AccessPicker } from "./AccessPicker";
@@ -15,6 +15,7 @@ interface Source {
   error: string | null;
   created_at: string;
   restrictedCount: number;
+  requires_verification: boolean;
 }
 
 const statusStyles: Record<Source["status"], string> = {
@@ -29,13 +30,14 @@ const statusLabels: Record<Source["status"], string> = {
   failed: "Failed",
 };
 
-export function KnowledgeManager() {
+export function KnowledgeManager({ canMarkSensitive }: { canMarkSensitive: boolean }) {
   const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingSensitive, setPendingSensitive] = useState(false);
   const [managingSourceId, setManagingSourceId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -55,7 +57,7 @@ export function KnowledgeManager() {
       .then(({ data }) => setUserId(data.user?.id));
   }, [refresh]);
 
-  async function upload(file: File, restrictedUserIds: string[]) {
+  async function upload(file: File, restrictedUserIds: string[], requiresVerification: boolean) {
     setUploading(true);
     setError(null);
 
@@ -63,6 +65,9 @@ export function KnowledgeManager() {
     formData.append("file", file);
     if (restrictedUserIds.length > 0) {
       formData.append("restrictedUserIds", restrictedUserIds.join(","));
+    }
+    if (requiresVerification) {
+      formData.append("requiresVerification", "true");
     }
 
     const res = await fetch("/api/knowledge/sources", { method: "POST", body: formData });
@@ -74,6 +79,7 @@ export function KnowledgeManager() {
 
     setUploading(false);
     setPendingFile(null);
+    setPendingSensitive(false);
     if (inputRef.current) inputRef.current.value = "";
     refresh();
   }
@@ -135,6 +141,15 @@ export function KnowledgeManager() {
           >
             <FileText size={18} className="text-[var(--muted)]" />
             <span className="flex-1 truncate text-[var(--text-sm)]">{source.name}</span>
+            {source.requires_verification && (
+              <span
+                title="Requires verified identity + admin approval to read"
+                className="flex items-center gap-1 text-[var(--text-xs)] text-[var(--accent)]"
+              >
+                <ShieldCheck size={12} />
+                Sensitive
+              </span>
+            )}
             {source.restrictedCount > 0 && (
               <span className="flex items-center gap-1 text-[var(--text-xs)] text-[var(--muted)]">
                 <ShieldOff size={12} />
@@ -171,9 +186,19 @@ export function KnowledgeManager() {
           confirmLabel="Upload"
           onCancel={() => {
             setPendingFile(null);
+            setPendingSensitive(false);
             if (inputRef.current) inputRef.current.value = "";
           }}
-          onConfirm={(restrictedUserIds) => upload(pendingFile, restrictedUserIds)}
+          onConfirm={(restrictedUserIds) => upload(pendingFile, restrictedUserIds, pendingSensitive)}
+          extraToggle={
+            canMarkSensitive
+              ? {
+                  label: "Sensitive — requires verified identity + admin approval to read",
+                  checked: pendingSensitive,
+                  onChange: setPendingSensitive,
+                }
+              : undefined
+          }
         />
       )}
 

@@ -41,7 +41,7 @@ export function buildTools(ctx: {
         query: z.string().describe("The search query, in natural language"),
       }),
       execute: async ({ query }) => {
-        const chunks = await searchKnowledge(ctx.supabase, ctx.orgId, query);
+        const chunks = await searchKnowledge(ctx.supabase, ctx.orgId, ctx.userId, query);
         if (chunks.length === 0) {
           return { found: false as const };
         }

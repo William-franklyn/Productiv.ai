@@ -16,6 +16,7 @@ export function AccessPicker({
   onConfirm,
   onCancel,
   confirmLabel = "Save",
+  extraToggle,
 }: {
   title: string;
   initialRestrictedIds: string[];
@@ -23,6 +24,7 @@ export function AccessPicker({
   onConfirm: (restrictedUserIds: string[]) => void | Promise<void>;
   onCancel: () => void;
   confirmLabel?: string;
+  extraToggle?: { label: string; checked: boolean; onChange: (checked: boolean) => void };
 }) {
   const [members, setMembers] = useState<Member[] | null>(null);
   const [restricted, setRestricted] = useState<Set<string>>(new Set(initialRestrictedIds));
@@ -60,6 +62,18 @@ export function AccessPicker({
         <p className="mt-1 text-[var(--text-xs)] text-[var(--muted)]">
           Everyone in the workspace can access this by default. Check anyone who should NOT be able to.
         </p>
+
+        {extraToggle && (
+          <label className="mt-3 flex items-center gap-2.5 rounded-[var(--radius-sm)] border border-[var(--border)] px-2.5 py-2 text-[var(--text-sm)]">
+            <input
+              type="checkbox"
+              checked={extraToggle.checked}
+              onChange={(e) => extraToggle.onChange(e.target.checked)}
+              className="h-4 w-4"
+            />
+            {extraToggle.label}
+          </label>
+        )}
 
         <div className="mt-4 flex max-h-64 flex-col gap-1 overflow-y-auto">
           {!members ? (

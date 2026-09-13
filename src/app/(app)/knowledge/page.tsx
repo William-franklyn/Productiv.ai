@@ -1,11 +1,13 @@
+import { requireAuth } from "@/lib/auth/guard";
 import { KnowledgeManager } from "@/components/knowledge/KnowledgeManager";
 
 export const metadata = { title: "Knowledge" };
 
-export default function KnowledgePage() {
+export default async function KnowledgePage() {
+  const { role } = await requireAuth();
   return (
     <main className="p-8">
-      <KnowledgeManager />
+      <KnowledgeManager canMarkSensitive={role !== "member"} />
     </main>
   );
 }

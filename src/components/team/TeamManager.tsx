@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, Copy, Mail, UserPlus } from "lucide-react";
+import { Check, Copy, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
@@ -9,6 +9,8 @@ interface Member {
   id: string;
   full_name: string | null;
   role: "owner" | "admin" | "member";
+  persona_verified: boolean;
+  sensitive_access_approved: boolean;
 }
 
 interface Invite {
@@ -19,7 +21,7 @@ interface Invite {
   created_at: string;
 }
 
-export function TeamManager() {
+export function TeamManager({ canManage }: { canManage: boolean }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [email, setEmail] = useState("");
@@ -74,6 +76,18 @@ export function TeamManager() {
     setTimeout(() => setCopiedId(null), 1500);
   }
 
+  async function toggleSensitiveAccess(member: Member) {
+    setMembers((prev) =>
+      prev.map((m) => (m.id === member.id ? { ...m, sensitive_access_approved: !m.sensitive_access_approved } : m)),
+    );
+    const res = await fetch(`/api/team/members/${member.id}/sensitive-access`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ approved: !member.sensitive_access_approved }),
+    });
+    if (!res.ok) refresh();
+  }
+
   return (
     <div>
       <h1 className="text-xl font-semibold">Team</h1>
@@ -115,10 +129,35 @@ export function TeamManager() {
       <div className="mt-2 flex flex-col gap-2">
         {members.map((m) => (
           <Card key={m.id} className="flex items-center justify-between p-3.5">
-            <span className="text-[var(--text-sm)]">{m.full_name ?? "Unnamed"}</span>
-            <span className="text-[var(--text-xs)] capitalize text-[var(--muted)]">
-              {m.role}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[var(--text-sm)]">{m.full_name ?? "Unnamed"}</span>
+              {m.persona_verified && (
+                <span
+                  title="Completed identity verification (Persona)"
+                  className="flex items-center gap-1 text-[var(--text-xs)] text-[var(--success)]"
+                >
+                  <ShieldCheck size={12} />
+                  Verified
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              {canManage && m.persona_verified ? (
+                <button
+                  onClick={() => toggleSensitiveAccess(m)}
+                  className={`text-[var(--text-xs)] ${
+                    m.sensitive_access_approved ? "text-[var(--accent)]" : "text-[var(--muted)]"
+                  }`}
+                >
+                  {m.sensitive_access_approved ? "Sensitive access: approved" : "Approve sensitive access"}
+                </button>
+              ) : (
+                m.sensitive_access_approved && (
+                  <span className="text-[var(--text-xs)] text-[var(--muted)]">Sensitive access approved</span>
+                )
+              )}
+              <span className="text-[var(--text-xs)] capitalize text-[var(--muted)]">{m.role}</span>
+            </div>
           </Card>
         ))}
       </div>

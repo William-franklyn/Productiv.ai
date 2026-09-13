@@ -16,7 +16,7 @@ export async function GET() {
   const [{ data, error }, { data: restrictions }] = await Promise.all([
     supabase
       .from("knowledge_sources")
-      .select("id, name, mime_type, status, error, created_at")
+      .select("id, name, mime_type, status, error, created_at, requires_verification")
       .eq("organization_id", auth.orgId)
       .order("created_at", { ascending: false }),
     supabase
@@ -52,6 +52,10 @@ export async function POST(req: NextRequest) {
     .split(",")
     .map((id) => id.trim())
     .filter(Boolean);
+  // Only an owner/admin can mark a source as requiring verified access —
+  // otherwise any member could gate arbitrary content from the rest of the
+  // team under the guise of "sensitivity".
+  const requiresVerification = auth.role !== "member" && formData.get("requiresVerification") === "true";
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -78,6 +82,7 @@ export async function POST(req: NextRequest) {
       storage_path: "",
       status: "processing",
       created_by: auth.userId,
+      requires_verification: requiresVerification,
     })
     .select("id")
     .single();

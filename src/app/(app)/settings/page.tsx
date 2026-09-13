@@ -4,11 +4,12 @@ import { WorkspaceNameForm } from "@/components/settings/WorkspaceNameForm";
 import { CapabilitiesCard } from "@/components/settings/CapabilitiesCard";
 import { ViewAsControl } from "@/components/settings/ViewAsControl";
 import { SponsorshipCard } from "@/components/settings/SponsorshipCard";
+import { IdentityVerificationCard } from "@/components/settings/IdentityVerificationCard";
 
 export const metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
-  const { orgName, role, realRole, fullName, viewingAs } = await requireAuth();
+  const { orgName, role, realRole, fullName, viewingAs, userId } = await requireAuth();
 
   return (
     <main className="flex flex-col gap-6 p-8">
@@ -28,6 +29,8 @@ export default async function SettingsPage() {
       <ViewAsControl realRole={realRole} />
 
       <SponsorshipCard canManage={role !== "member"} />
+
+      <IdentityVerificationCard userId={userId} />
 
       <CapabilitiesCard />
     </main>

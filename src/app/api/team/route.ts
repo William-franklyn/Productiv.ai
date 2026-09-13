@@ -11,7 +11,7 @@ export async function GET() {
   const [{ data: membershipRows }, { data: invites }] = await Promise.all([
     supabase
       .from("memberships")
-      .select("role, created_at, profiles(id, full_name)")
+      .select("role, sensitive_access_approved, created_at, profiles(id, full_name, persona_verified_at)")
       .eq("organization_id", auth.orgId)
       .order("created_at"),
     supabase
@@ -24,7 +24,13 @@ export async function GET() {
 
   const members = (membershipRows ?? []).map((row) => {
     const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
-    return { id: profile?.id, full_name: profile?.full_name ?? null, role: row.role };
+    return {
+      id: profile?.id,
+      full_name: profile?.full_name ?? null,
+      role: row.role,
+      persona_verified: Boolean(profile?.persona_verified_at),
+      sensitive_access_approved: row.sensitive_access_approved,
+    };
   });
 
   return NextResponse.json({ members, invites: invites ?? [] });
