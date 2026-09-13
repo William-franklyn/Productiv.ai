@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAuthApi } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createDemoCustomer, createDemoAccount, getAccount, isNessieConfigured } from "@/lib/nessie/client";
+import { createDemoCustomer, createDemoAccount, isNessieConfigured } from "@/lib/nessie/client";
+import { getEffectiveBalance } from "@/lib/nessie/balance";
 import { logActivity } from "@/lib/activity";
 
 export async function GET() {
@@ -21,11 +22,11 @@ export async function GET() {
   }
 
   try {
-    const account = await getAccount(connection.account_id);
+    const { balance } = await getEffectiveBalance(supabase, auth.orgId, connection.account_id);
     return NextResponse.json({
       connected: true,
       nickname: connection.nickname,
-      balance: account.balance,
+      balance,
       connectedAt: connection.created_at,
     });
   } catch {

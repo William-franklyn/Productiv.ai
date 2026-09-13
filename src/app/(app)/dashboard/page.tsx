@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarClock, ListTodo } from "lucide-react";
 import { requireAuth } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
-import { getAccount } from "@/lib/nessie/client";
+import { getEffectiveBalance } from "@/lib/nessie/balance";
 import { Card } from "@/components/ui/Card";
 
 export const metadata = { title: "Dashboard" };
@@ -50,8 +50,8 @@ export default async function DashboardPage() {
   let balance: { nickname: string; amount: number } | null = null;
   if (financeConnection.data) {
     try {
-      const account = await getAccount(financeConnection.data.account_id);
-      balance = { nickname: financeConnection.data.nickname, amount: account.balance };
+      const effective = await getEffectiveBalance(supabase, orgId, financeConnection.data.account_id);
+      balance = { nickname: effective.nickname, amount: effective.balance };
     } catch {
       // Nessie unreachable — just omit the widget rather than break the page.
     }

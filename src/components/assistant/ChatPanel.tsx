@@ -81,6 +81,19 @@ export function ChatPanel({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // The conversation's title auto-updates server-side from its first
+  // message, but the sidebar only refetches on route changes — tell it to
+  // refresh whenever a reply finishes, so a freshly-titled active
+  // conversation doesn't keep showing "New conversation" until you navigate
+  // away and back.
+  const wasBusyRef = useRef(false);
+  useEffect(() => {
+    if (wasBusyRef.current && !busy) {
+      window.dispatchEvent(new Event("productivai:conversation-updated"));
+    }
+    wasBusyRef.current = busy;
+  }, [busy]);
+
   useEffect(() => {
     let latestDraft: string | null = null;
     let latestPayment: string | null = null;

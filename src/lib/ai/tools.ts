@@ -7,7 +7,8 @@ import { sendMeetingInvite, sendMeetingCancellation } from "@/lib/email/meeting-
 import { summarizeDataset, groupByAggregate, type Aggregate } from "@/lib/knowledge/analyze";
 import type { Dataset } from "@/lib/knowledge/tabular";
 import type { FormField } from "@/lib/forms/types";
-import { getAccount, listTransactions } from "@/lib/nessie/client";
+import { listTransactions } from "@/lib/nessie/client";
+import { getEffectiveBalance } from "@/lib/nessie/balance";
 
 async function fetchMembers(supabase: SupabaseClient, orgId: string) {
   const { data } = await supabase
@@ -598,8 +599,8 @@ export function buildTools(ctx: {
         if (!connection) return { ok: false as const, reason: "not_connected" as const };
 
         try {
-          const account = await getAccount(connection.account_id);
-          return { ok: true as const, nickname: connection.nickname, balance: account.balance };
+          const { nickname, balance } = await getEffectiveBalance(ctx.supabase, ctx.orgId, connection.account_id);
+          return { ok: true as const, nickname, balance };
         } catch (err) {
           return { ok: false as const, reason: "error" as const, error: String(err) };
         }
