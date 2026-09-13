@@ -4,9 +4,8 @@ import { requireAuthApi } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { chatModel } from "@/lib/ai/provider";
 import { buildTools } from "@/lib/ai/tools";
-import { getCitations, getChart, getText, classifyUsage } from "@/lib/ai/message-parts";
+import { getCitations, getChart, getText, classifyUsageEvents } from "@/lib/ai/message-parts";
 import { settleUnsettledUsage, SETTLE_BATCH_SIZE } from "@/lib/solana/settlement";
-import { lamportsPerAnswer } from "@/lib/solana/rates";
 
 function systemPrompt() {
   const now = new Date();
@@ -113,15 +112,18 @@ export async function POST(req: NextRequest) {
         chart: getChart(assistantMessage),
       });
 
-      // Sponsored-credits usage ledger — refusals are free, answers debit
-      // credit_balance. See docs/sponsored-credits.md.
-      const kind = classifyUsage(assistantMessage);
-      const lamports = kind === "answered" ? lamportsPerAnswer() : 0;
-      await supabase.rpc("record_usage_event", {
-        org_id: auth.orgId,
-        event_kind: kind,
-        lamports,
-      });
+      // Sponsored-credits usage ledger — one event per chargeable action in
+      // this turn, refusals/failures are free. See docs/sponsored-credits.md.
+      const usageEvents = classifyUsageEvents(assistantMessage);
+      for (const event of usageEvents) {
+        await supabase.rpc("record_usage_event", {
+          org_id: auth.orgId,
+          event_action: event.action,
+          event_outcome: event.outcome,
+          event_credits: event.credits,
+        });
+      }
+      if (usageEvents.length === 0) return;
 
       const { count: unsettledCount } = await supabase
         .from("usage_events")

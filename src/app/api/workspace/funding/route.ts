@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { requireAuthApi } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
-import { lamportsPerAnswer } from "@/lib/solana/rates";
 
 const appUrl = () => process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -19,11 +18,9 @@ export async function GET() {
 
   if (error || !data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const answersLeft = Math.max(0, Math.floor(data.credit_balance / lamportsPerAnswer()));
-
   return NextResponse.json({
     creditBalance: data.credit_balance,
-    answersLeft,
+    actionsLeft: Math.max(0, data.credit_balance),
     sponsorSlug: data.sponsor_slug,
     sponsorUrl: data.sponsor_slug ? `${appUrl()}/sponsor/${data.sponsor_slug}` : null,
   });

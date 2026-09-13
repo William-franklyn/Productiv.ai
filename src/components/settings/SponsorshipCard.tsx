@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 
 interface Funding {
   creditBalance: number;
-  answersLeft: number;
+  actionsLeft: number;
   sponsorSlug: string | null;
   sponsorUrl: string | null;
 }
@@ -55,7 +55,7 @@ export function SponsorshipCard({ canManage }: { canManage: boolean }) {
         <div className="mt-4 flex items-center justify-between rounded-[var(--radius)] border border-[var(--border)] px-4 py-3">
           <span className="text-[var(--text-sm)] text-[var(--muted)]">Balance</span>
           <span className="tabular-nums text-[var(--text-base)] font-medium">
-            ≈ {funding.answersLeft.toLocaleString()} answers left
+            ≈ {funding.actionsLeft.toLocaleString()} actions left
           </span>
         </div>
       )}

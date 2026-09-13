@@ -1,5 +1,6 @@
 import type { UIMessage } from "ai";
 import type { ChartSpec } from "@/lib/charts/types";
+import { CREDIT_COSTS, type ChargeableAction } from "@/lib/credits/costs";
 
 export interface Citation {
   sourceId: string;
@@ -245,30 +246,55 @@ export function getReceivedPayment(message: UIMessage): ReceivedPayment | null {
   return null;
 }
 
+export interface UsageEventDraft {
+  action: ChargeableAction;
+  outcome: "completed" | "refused" | "failed";
+  credits: number;
+}
+
+const ACTION_TOOL_MAP: Record<string, ChargeableAction> = {
+  "tool-create_task": "task",
+  "tool-schedule_meeting": "meeting",
+  "tool-draft_email": "email",
+};
+
 /**
- * Sponsored-credits usage classification: a "refusal" is specifically a
- * knowledge question that came back empty (search_knowledge found nothing)
- * with nothing else in the turn that actually succeeded — that's the "your
- * teacher hasn't covered this" case, which is free. Everything else,
- * including plain conversation with no tool calls at all, counts as answered.
+ * Sponsored-credits usage classification: one usage_event per chargeable
+ * action actually taken in this turn (not one per turn) — a single message
+ * could both answer a question and create a task, and each is metered and
+ * reported separately. search_knowledge coming back empty is the one
+ * "refused" case (free); any other tool failing is a "failed" action (also
+ * free). A turn with no chargeable tool calls at all — plain conversation —
+ * produces no usage_event.
  */
-export function classifyUsage(message: UIMessage): "answered" | "refused" {
-  let sawEmptySearch = false;
-  let sawSuccess = false;
+export function classifyUsageEvents(message: UIMessage): UsageEventDraft[] {
+  const events: UsageEventDraft[] = [];
 
   for (const part of message.parts) {
-    if (!isOutputAvailable(part) || !part.type.startsWith("tool-")) continue;
+    if (!isOutputAvailable(part)) continue;
+
     if (part.type === "tool-search_knowledge") {
       const output = part.output as { found: boolean };
-      if (output.found) sawSuccess = true;
-      else sawEmptySearch = true;
-    } else {
-      const output = part.output as { ok?: boolean };
-      if (output.ok !== false) sawSuccess = true;
+      events.push(
+        output.found
+          ? { action: "answer", outcome: "completed", credits: CREDIT_COSTS.answer }
+          : { action: "answer", outcome: "refused", credits: 0 },
+      );
+      continue;
     }
+
+    const action = ACTION_TOOL_MAP[part.type];
+    if (!action) continue;
+
+    const output = part.output as { ok?: boolean };
+    events.push(
+      output.ok !== false
+        ? { action, outcome: "completed", credits: CREDIT_COSTS[action] }
+        : { action, outcome: "failed", credits: 0 },
+    );
   }
 
-  return sawEmptySearch && !sawSuccess ? "refused" : "answered";
+  return events;
 }
 
 export function getText(message: UIMessage): string {

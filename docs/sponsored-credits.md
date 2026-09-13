@@ -1,110 +1,177 @@
-# Sponsored Workspace Credits
+# Sponsored Credits
 
-A workspace runs on credit. Someone funds it, members ask questions, and every
-answer is accounted for publicly.
+A workspace runs on credit. A sponsor funds it. The workspace does work —
+answers, emails, tasks, meetings — and every action is accounted for on a
+ledger anyone can check.
 
-Two rails, two jobs:
-
-| | Rail | Job |
-|---|---|---|
-| **Money in** | Capital One Nessie | Sponsor moves real (sandbox) funds into a workspace |
-| **Money spent** | Solana (devnet) | Public, verifiable record of what those funds bought |
-
-Nessie moves value. Solana proves consumption. They never overlap.
+Supersedes the answer-only version of this doc.
 
 ---
 
-## Why
+## The two rails
 
-The unanswered question in a grounded-AI workspace is who pays for inference
-when the customer is a school, an NGO, or a small employer. A sponsor does.
+| | Rail | What it is | Withdrawable |
+|---|---|---|---|
+| **Sponsor credit** | Solana (devnet) | The org's consumption of the platform | **Never** |
+| **Org money** | Capital One Nessie (sandbox) | The org's own funds moving to its own people | Yes — it's theirs |
 
-But a sponsor funding a classroom doesn't want a quarterly PDF saying "your
-money helped 60 students." They want a ledger: 4,312 answers, which workspace,
-what it cost, verifiable by anyone.
+**These never touch.** Separate tables, separate balances, no conversion path,
+no shared code path. Sponsor credit is funded and spent entirely on Solana —
+funding is a real devnet SOL transfer into the org's own receive-only wallet
+address, spending is a memo transaction proving consumption. Nessie is
+untouched by any of this; it's the existing Finance feature (pay a vendor,
+receive a payment) and always was.
 
-**The key design idea:** the sponsor ledger and the gap log are the same data.
-A sponsor sees questions answered *and* questions the workspace couldn't
-answer — because the second number is a funding signal. It says this workspace
-needs more material, not just more credit.
+### Why this line is hard
 
-Money follows gaps.
+The platform can move money now (Finance: pay a vendor, receive a payment). If
+sponsor credit could become cash, you'd have built a channel for converting
+grant money into payouts. That's the fastest way to lose a funder.
+
+Sponsor credit buys platform actions. Full stop.
+
+> Funds platform usage only. Cannot be withdrawn or transferred.
+
+---
+
+## The unit is an action, not an answer
+
+Every action costs inference, so every action is metered.
+
+| Action | Credits |
+|---|---|
+| Grounded answer (`search_knowledge` finds something) | 1 |
+| Task created | 1 |
+| Meeting scheduled | 2 |
+| Email drafted | 2 |
+| Refusal (`search_knowledge` finds nothing, no other tool completes) | **0** |
+| Failed action | **0** |
+
+Report generation isn't a feature of this app yet, so it isn't metered here —
+add it to the cost table in `src/lib/credits/costs.ts` if that ships later.
+
+Nobody pays for a non-answer or a failure. Never show token counts in the UI —
+credits only.
+
+---
+
+## Funding: a real devnet SOL transfer
+
+Rate: **0.5 SOL per 1,000 credits** (1 credit = 500,000 lamports).
+
+Each org gets a receive-only devnet keypair the moment its funding link is
+created — only the public key is stored (`organizations.wallet_address`);
+there's no reason to ever sign with it, since sponsor credit can't be spent
+outward. The sponsor page's Fund button moves real devnet SOL from the
+platform's treasury keypair to that address (the hackathon-scope stand-in
+for a sponsor's own wallet — see cut order) and credits `credit_balance` by
+`lamports_transferred / 500,000`.
+
+---
+
+## What the sponsor sees
+
+Not a balance. A record of work:
+
+> **Funded 1.5 devnet SOL**
+> 140 questions answered · 22 emails drafted · 60 tasks created · 15 meetings
+> scheduled
+>
+> 31 questions the material couldn't answer
+
+The last line is the point. It turns a receipt into a funding signal: this
+workspace needs more material, not just more credit.
 
 ---
 
 ## Surfaces
 
-**Admin** — workspace Settings
-Balance chip denominated in answers, not currency ("≈ 380 answers left").
-One button: *Get a funding link*.
+**Admin** — Settings → Sponsorship
+Balance shown as capacity, not currency: *"≈ 380 actions left."*
+One button: **Get a funding link.**
 
-**Sponsor** — `/sponsor/[slug]` — public, no login
-Workspace name, who runs it, answers funded, questions unanswered, live ledger.
-Pick amount, fund, done. This page is the feature. It's what gets forwarded to
-a donor network and what goes on screen at judging.
+**Sponsor** — `/sponsor/[slug]` — public, no login required to view
+Org name, work funded by action type, refusal count, live ledger, Fund button.
+This page is the feature.
 
-**Member** — nothing
-No balance, no cost, no "3 questions left." The moment someone feels metered
-they stop asking questions, and asking questions is the product.
+**Member** — nothing.
+No balance, no cost, no "3 actions left." The moment someone feels metered
+they stop using the workspace.
 
 ---
 
 ## Schema
 
-Adapted to this codebase's actual multi-tenant unit (`organizations`, not a
-separate `workspaces` table) and its existing Nessie connection table (reused
-rather than duplicated):
-
 ```sql
--- additions to organizations
-wallet_address   text
-credit_balance   bigint
+-- organizations (this codebase's "workspace")
+wallet_address   text     -- receive-only devnet pubkey, set at funding-link creation
+credit_balance   bigint default 0   -- credit units. NOT lamports, NOT money.
 sponsor_slug     text unique
--- Nessie account: reuses the existing nessie_connections table already
--- built for the Finance feature, instead of a new nessie_account column.
 
 create table usage_events (
   id                uuid primary key,
   organization_id   uuid references organizations(id),
-  kind              text check (kind in ('answered','refused')),
-  cost_lamports     bigint default 0,
+  action            text,   -- answer | task | meeting | email
+  outcome           text,   -- completed | refused | failed
+  credits           int default 0,
   tx_sig            text,
   created_at        timestamptz default now()
 );
 ```
 
+`nessie_connections` and `receipts` (the org-money rail) are untouched by any
+of this — separate tables, separate code path, as designed.
+
+---
+
 ## Flow
 
-1. Sponsor funds via Nessie deposit → `organizations.credit_balance` credited
-2. Member asks a question in the assistant
-3. The chat route resolves the answer as normal (search_knowledge, tools, etc.)
-4. **Answered** → debit, write `usage_event(kind='answered')`
-5. **Refused** (search_knowledge found nothing and no other tool succeeded)
-   → write `usage_event(kind='refused')`, `cost = 0`
-6. Settle on-chain in batches (every N unsettled events) → one Solana devnet
-   memo transaction anchoring the batch's counts and lamport total, `tx_sig`
-   stored back onto every event in that batch
+1. Sponsor funds at `/sponsor/[slug]` → real devnet SOL transfer to the org's
+   `wallet_address` → `credit_balance` credited
+2. Member asks for something in chat
+3. The chat route resolves it as normal (tools, retrieval, generation)
+4. Each chargeable action in that turn writes its own `usage_event` —
+   `outcome='completed'` and its listed credit cost, or `outcome='refused'`
+   / `'failed'` at zero cost
+5. Settle on-chain in batches (every N unsettled events) → one Solana devnet
+   memo transaction naming the org, the count per action/outcome, and the
+   total credits — `tx_sig` stored back onto every event in the batch
 
-### Two behaviours that matter
+Debit locally, settle asynchronously — the chat path never waits on
+confirmation beyond its own batch's memo tx.
 
-**Refusals are free.** The AI said "I don't have material on this." Nobody
-pays for a non-answer.
+### Zero balance
 
-**Zero balance never interrupts.** Finish the answer in flight. Never cut
-someone off mid-lesson — credit balance can go negative; it's a funding
-signal for the admin, not a hard stop for members.
+Never interrupt work in flight. A negative `credit_balance` is a funding
+signal for the admin and sponsor page, not a stop condition for members —
+cutting someone off mid-task is the cruelest version of this feature.
 
 ---
 
 ## Privacy
 
-On-chain: amounts, organization IDs, counts, a batch timestamp.
-Never: member identity, query content, or anything linking a person to a topic.
+**On-chain:** amounts, organization IDs, action/outcome counts, a batch
+timestamp.
+**Never on-chain:** member identity, message content, recipient addresses, or
+anything linking a person to a topic.
 
-A permanent public record of which member asked about which subject is the one
-thing this must not become. On-chain is forever and cannot be erased.
+On-chain is permanent and cannot be erased. A public record of which member
+asked about which subject is the one thing this must not become.
 
 Hold the ability to verify, not to read.
+
+---
+
+## Cut order
+
+1. On-chain batching → debit locally, settle once before demo
+2. The sponsor-side wallet → the treasury keypair standing in for a real
+   sponsor wallet is already the hackathon-scope choice; a real wallet-connect
+   flow is out of scope
+3. Nessie → not on this rail at all; cutting it only affects Finance, a
+   separate feature
+
+**Last to cut:** the public sponsor page.
 
 ---
 
@@ -114,7 +181,7 @@ Hold the ability to verify, not to read.
 SOLANA_RPC_URL=https://api.devnet.solana.com
 SOLANA_TREASURY_KEYPAIR=
 NESSIE_API_KEY=
-LAMPORTS_PER_ANSWER=
+LAMPORTS_PER_CREDIT=500000
 ```
 
 Devnet and Nessie sandbox only. No real funds.

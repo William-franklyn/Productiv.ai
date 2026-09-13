@@ -1,30 +1,55 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, CircleHelp, ExternalLink, HandCoins, Loader2, MessageCircle } from "lucide-react";
+import {
+  CalendarCheck,
+  CheckCircle2,
+  CircleHelp,
+  ExternalLink,
+  HandCoins,
+  ListTodo,
+  Loader2,
+  Mail,
+  MessageCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
 interface LedgerEntry {
-  kind: "answered" | "refused";
-  cost_lamports: number;
+  action: "answer" | "task" | "meeting" | "email";
+  outcome: "completed" | "refused" | "failed";
+  credits: number;
   tx_sig: string | null;
   created_at: string;
 }
 
 interface SponsorData {
   orgName: string;
-  answersLeft: number;
-  answeredCount: number;
+  actionsLeft: number;
+  breakdown: { answer: number; task: number; meeting: number; email: number };
   refusedCount: number;
   ledger: LedgerEntry[];
 }
 
+const ACTION_LABEL: Record<LedgerEntry["action"], string> = {
+  answer: "Answered",
+  task: "Task created",
+  meeting: "Meeting scheduled",
+  email: "Email drafted",
+};
+
+const ACTION_ICON: Record<LedgerEntry["action"], React.ElementType> = {
+  answer: MessageCircle,
+  task: ListTodo,
+  meeting: CalendarCheck,
+  email: Mail,
+};
+
 export function SponsorPage({ slug }: { slug: string }) {
   const [data, setData] = useState<SponsorData | null | "not_found">(null);
-  const [amount, setAmount] = useState("5");
+  const [amount, setAmount] = useState("1");
   const [funding, setFunding] = useState(false);
-  const [funded, setFunded] = useState(false);
+  const [funded, setFunded] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
@@ -42,24 +67,24 @@ export function SponsorPage({ slug }: { slug: string }) {
 
   async function fund(e: React.FormEvent) {
     e.preventDefault();
-    const amountUsd = Number(amount);
-    if (!amountUsd || amountUsd <= 0) return;
+    const solAmount = Number(amount);
+    if (!solAmount || solAmount <= 0) return;
 
     setFunding(true);
     setError(null);
     const res = await fetch(`/api/sponsor/${slug}/fund`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amountUsd }),
+      body: JSON.stringify({ solAmount }),
     });
+    const body = await res.json().catch(() => ({}));
     setFunding(false);
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
       setError(body.error ?? "Could not process funding");
       return;
     }
-    setFunded(true);
-    setTimeout(() => setFunded(false), 3000);
+    setFunded(body.explorerUrl ?? null);
+    setTimeout(() => setFunded(null), 6000);
     refresh();
   }
 
@@ -79,27 +104,49 @@ export function SponsorPage({ slug }: { slug: string }) {
     );
   }
 
+  const totalCompleted = data.breakdown.answer + data.breakdown.task + data.breakdown.meeting + data.breakdown.email;
+
   return (
     <div className="mx-auto min-h-screen max-w-xl p-6 py-12">
       <p className="text-[var(--text-xs)] uppercase tracking-wide text-[var(--muted)]">Sponsored workspace</p>
       <h1 className="mt-1 text-2xl font-semibold">{data.orgName}</h1>
       <p className="mt-1 text-[var(--text-sm)] text-[var(--muted)]">
-        Every question this workspace's AI answers is funded by a sponsor and accounted for publicly
-        below — without ever revealing what anyone asked.
+        Every action this workspace's AI takes is funded by a sponsor and accounted for publicly
+        below — without ever revealing what anyone asked. Funds platform usage only; sponsor credit
+        can&apos;t be withdrawn or transferred.
       </p>
 
-      <div className="mt-6 grid grid-cols-3 gap-3">
-        <Card className="p-4 text-center">
-          <p className="tabular-nums text-xl font-semibold">{data.answeredCount.toLocaleString()}</p>
-          <p className="mt-1 text-[var(--text-xs)] text-[var(--muted)]">Answers funded</p>
-        </Card>
+      <Card className="mt-6 p-5">
+        <p className="text-[var(--text-sm)] text-[var(--muted)]">Work funded</p>
+        <p className="tabular-nums mt-1 text-xl font-semibold">{totalCompleted.toLocaleString()} actions</p>
+        <div className="mt-3 grid grid-cols-2 gap-2 text-[var(--text-sm)] sm:grid-cols-4">
+          <div className="flex items-center gap-1.5">
+            <MessageCircle size={14} className="text-[var(--accent)]" />
+            {data.breakdown.answer.toLocaleString()} answered
+          </div>
+          <div className="flex items-center gap-1.5">
+            <ListTodo size={14} className="text-[var(--accent)]" />
+            {data.breakdown.task.toLocaleString()} tasks
+          </div>
+          <div className="flex items-center gap-1.5">
+            <CalendarCheck size={14} className="text-[var(--accent)]" />
+            {data.breakdown.meeting.toLocaleString()} meetings
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Mail size={14} className="text-[var(--accent)]" />
+            {data.breakdown.email.toLocaleString()} emails
+          </div>
+        </div>
+      </Card>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
         <Card className="p-4 text-center">
           <p className="tabular-nums text-xl font-semibold">{data.refusedCount.toLocaleString()}</p>
           <p className="mt-1 text-[var(--text-xs)] text-[var(--muted)]">Questions unanswered</p>
         </Card>
         <Card className="p-4 text-center">
-          <p className="tabular-nums text-xl font-semibold">{data.answersLeft.toLocaleString()}</p>
-          <p className="mt-1 text-[var(--text-xs)] text-[var(--muted)]">Answers left</p>
+          <p className="tabular-nums text-xl font-semibold">{data.actionsLeft.toLocaleString()}</p>
+          <p className="mt-1 text-[var(--text-xs)] text-[var(--muted)]">Actions left</p>
         </Card>
       </div>
 
@@ -116,21 +163,31 @@ export function SponsorPage({ slug }: { slug: string }) {
           Fund this workspace
         </h2>
         {funded ? (
-          <p className="mt-3 flex items-center gap-2 text-[var(--text-sm)] text-[var(--success)]">
-            <CheckCircle2 size={15} />
-            Thanks — the workspace's balance just updated.
-          </p>
+          <div className="mt-3 flex flex-col gap-1">
+            <p className="flex items-center gap-2 text-[var(--text-sm)] text-[var(--success)]">
+              <CheckCircle2 size={15} />
+              Funded — the workspace's balance just updated.
+            </p>
+            <a
+              href={funded}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[var(--text-xs)] text-[var(--accent)] hover:underline"
+            >
+              Verify the transfer <ExternalLink size={11} />
+            </a>
+          </div>
         ) : (
           <form onSubmit={fund} className="mt-3 flex items-center gap-2">
-            <span className="text-[var(--text-base)] text-[var(--muted)]">$</span>
             <input
               type="number"
-              min="1"
-              step="1"
+              min="0.01"
+              step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="h-10 w-28 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-3"
             />
+            <span className="text-[var(--text-sm)] text-[var(--muted)]">devnet SOL</span>
             <Button type="submit" disabled={funding}>
               {funding ? <Loader2 size={14} className="animate-spin" /> : <HandCoins size={14} />}
               Fund
@@ -139,7 +196,7 @@ export function SponsorPage({ slug }: { slug: string }) {
         )}
         {error && <p className="mt-2 text-[var(--text-xs)] text-[var(--danger)]">{error}</p>}
         <p className="mt-2 text-[var(--text-xs)] text-[var(--muted)]">
-          Sandbox funds via Capital One's Nessie API — no real money moves.
+          A real Solana devnet transfer — no real money moves.
         </p>
       </Card>
 
@@ -154,36 +211,35 @@ export function SponsorPage({ slug }: { slug: string }) {
               No activity yet.
             </Card>
           ) : (
-            data.ledger.map((entry, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between border-b border-[var(--border)] py-2 text-[var(--text-sm)] last:border-0"
-              >
-                <span className="flex items-center gap-2">
-                  {entry.kind === "answered" ? (
-                    <MessageCircle size={14} className="text-[var(--accent)]" />
-                  ) : (
-                    <CircleHelp size={14} className="text-[var(--muted)]" />
-                  )}
-                  {entry.kind === "answered" ? "Answered" : "Unanswered"}
-                  <span className="text-[var(--text-xs)] text-[var(--muted)]">
-                    {new Date(entry.created_at).toLocaleString()}
+            data.ledger.map((entry, i) => {
+              const Icon = entry.outcome === "completed" ? ACTION_ICON[entry.action] : CircleHelp;
+              return (
+                <div
+                  key={i}
+                  className="flex items-center justify-between border-b border-[var(--border)] py-2 text-[var(--text-sm)] last:border-0"
+                >
+                  <span className="flex items-center gap-2">
+                    <Icon size={14} className={entry.outcome === "completed" ? "text-[var(--accent)]" : "text-[var(--muted)]"} />
+                    {entry.outcome === "completed" ? ACTION_LABEL[entry.action] : "Unanswered"}
+                    <span className="text-[var(--text-xs)] text-[var(--muted)]">
+                      {new Date(entry.created_at).toLocaleString()}
+                    </span>
                   </span>
-                </span>
-                {entry.tx_sig ? (
-                  <a
-                    href={`https://explorer.solana.com/tx/${entry.tx_sig}?cluster=devnet`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[var(--text-xs)] text-[var(--accent)] hover:underline"
-                  >
-                    Verify <ExternalLink size={11} />
-                  </a>
-                ) : (
-                  <span className="text-[var(--text-xs)] text-[var(--muted)]">Settling…</span>
-                )}
-              </div>
-            ))
+                  {entry.tx_sig ? (
+                    <a
+                      href={`https://explorer.solana.com/tx/${entry.tx_sig}?cluster=devnet`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-[var(--text-xs)] text-[var(--accent)] hover:underline"
+                    >
+                      Verify <ExternalLink size={11} />
+                    </a>
+                  ) : (
+                    <span className="text-[var(--text-xs)] text-[var(--muted)]">Settling…</span>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
       </div>

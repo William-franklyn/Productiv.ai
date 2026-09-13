@@ -20,17 +20,20 @@ export async function settleUnsettledUsage(
   const admin = createAdminClient();
   const { data: events } = await admin
     .from("usage_events")
-    .select("id, kind, cost_lamports")
+    .select("id, action, outcome, credits")
     .eq("organization_id", organizationId)
     .is("tx_sig", null);
 
   if (!events || events.length === 0) return null;
 
-  const answeredCount = events.filter((e) => e.kind === "answered").length;
-  const refusedCount = events.filter((e) => e.kind === "refused").length;
-  const totalLamports = events.reduce((sum, e) => sum + Number(e.cost_lamports), 0);
+  const counts: Record<string, number> = {};
+  for (const e of events) {
+    const key = `${e.action}_${e.outcome}`;
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
+  const totalCredits = events.reduce((sum, e) => sum + e.credits, 0);
 
-  const txSig = await settleBatch({ organizationId, answeredCount, refusedCount, totalLamports });
+  const txSig = await settleBatch({ organizationId, counts, totalCredits });
 
   await admin
     .from("usage_events")

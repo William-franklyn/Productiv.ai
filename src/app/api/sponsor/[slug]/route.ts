@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { lamportsPerAnswer } from "@/lib/solana/rates";
 
 // Public, no auth — a sponsor has no account. Everything returned here is
 // safe to be fully public: names, counts, amounts, tx signatures. Never a
@@ -20,30 +19,25 @@ export async function GET(
 
   if (!org) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const [{ count: answeredCount }, { count: refusedCount }, { data: ledger }] = await Promise.all([
-    admin
-      .from("usage_events")
-      .select("id", { count: "exact", head: true })
-      .eq("organization_id", org.id)
-      .eq("kind", "answered"),
-    admin
-      .from("usage_events")
-      .select("id", { count: "exact", head: true })
-      .eq("organization_id", org.id)
-      .eq("kind", "refused"),
-    admin
-      .from("usage_events")
-      .select("kind, cost_lamports, tx_sig, created_at")
-      .eq("organization_id", org.id)
-      .order("created_at", { ascending: false })
-      .limit(30),
-  ]);
+  const { data: events } = await admin
+    .from("usage_events")
+    .select("action, outcome, credits, tx_sig, created_at")
+    .eq("organization_id", org.id)
+    .order("created_at", { ascending: false });
+
+  const all = events ?? [];
+  const breakdown = { answer: 0, task: 0, meeting: 0, email: 0 };
+  let refusedCount = 0;
+  for (const e of all) {
+    if (e.outcome === "completed") breakdown[e.action as keyof typeof breakdown]++;
+    else if (e.outcome === "refused") refusedCount++;
+  }
 
   return NextResponse.json({
     orgName: org.name,
-    answersLeft: Math.max(0, Math.floor(org.credit_balance / lamportsPerAnswer())),
-    answeredCount: answeredCount ?? 0,
-    refusedCount: refusedCount ?? 0,
-    ledger: ledger ?? [],
+    actionsLeft: Math.max(0, org.credit_balance),
+    breakdown,
+    refusedCount,
+    ledger: all.slice(0, 30),
   });
 }
