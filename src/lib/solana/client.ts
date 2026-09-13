@@ -94,7 +94,7 @@ export async function settleBatch(params: {
     .map(([key, n]) => `${key}=${n}`)
     .join(",");
   const memo = [
-    "productivai-settle",
+    "irabu-settle",
     params.organizationId,
     countsPart,
     `credits=${params.totalCredits}`,

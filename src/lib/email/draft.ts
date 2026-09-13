@@ -7,7 +7,7 @@ function getClient() {
 }
 
 // Resend can only send "From" a verified domain, so a drafted email can't
-// go out as the user's own address — it goes out from ProductivAI's sender
+// go out as the user's own address — it goes out from iRABU's sender
 // with the user's own address as reply-to, so replies land with them.
 export async function sendDraftEmail(params: {
   to: string;
@@ -20,7 +20,7 @@ export async function sendDraftEmail(params: {
 
   try {
     await client.emails.send({
-      from: process.env.RESEND_FROM ?? "ProductivAI <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM ?? "iRABU <onboarding@resend.dev>",
       to: params.to,
       replyTo: params.replyTo ?? undefined,
       subject: params.subject,

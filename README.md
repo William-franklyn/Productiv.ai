@@ -1,6 +1,6 @@
-# ProductivAI
+# iRABU
 
-ProductivAI is an AI knowledge assistant and automation chat for teams. Upload
+iRABU is an AI knowledge assistant and automation chat for teams. Upload
 your team's documents, ask questions in plain language, and get answers with
 citations back to the source — plus a chat assistant that can create tasks and
 turn data into charts on request.
@@ -8,7 +8,7 @@ turn data into charts on request.
 ## Why
 
 Most teams' knowledge is scattered across docs nobody re-reads and chat
-threads nobody re-finds. ProductivAI gives a team one place to ask a question
+threads nobody re-finds. iRABU gives a team one place to ask a question
 and get a sourced answer, instead of a pile of search results to read through
 themselves.
 
@@ -68,8 +68,8 @@ standing up a fresh project in a single run.
 
 ## Credits
 
-ProductivAI's feature set and design are explicitly modeled on the author's
-own earlier products, **getirabu.com** (marketing site) and **irabu.ai**
-(the permission-aware chat app) — same author, same underlying ideas,
-rebuilt fresh here under a new name and brand. This is a from-scratch
-codebase, not a copy of either repository's source.
+iRABU's feature set and design share underlying ideas with the author's
+earlier products, **getirabu.com** (marketing site) and **irabu.ai** (the
+permission-aware chat app) — same author, same lineage of thinking, but this
+is a separate, from-scratch codebase, not a copy of either repository's
+source.

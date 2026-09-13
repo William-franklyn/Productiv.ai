@@ -8,7 +8,7 @@ import clsx from "clsx";
 import { navItems } from "@/lib/nav";
 import type { WorkspaceMembership } from "@/lib/auth/guard";
 
-const STORAGE_KEY = "productivai-sidebar-collapsed";
+const STORAGE_KEY = "irabu-sidebar-collapsed";
 
 function WorkspaceSwitcher({
   orgId,
@@ -176,7 +176,7 @@ export function Sidebar({
       )}
     >
       <div className={clsx("flex items-center", collapsed ? "flex-col gap-2" : "justify-between px-2")}>
-        {!collapsed && <div className="text-[var(--text-base)] font-semibold">ProductivAI</div>}
+        {!collapsed && <div className="text-[var(--text-base)] font-semibold">iRABU</div>}
         <button
           onClick={toggle}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}

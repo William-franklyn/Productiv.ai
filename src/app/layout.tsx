@@ -6,17 +6,17 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: {
-    default: "ProductivAI",
-    template: "%s | ProductivAI",
+    default: "iRABU",
+    template: "%s | iRABU",
   },
   description:
-    "ProductivAI — ask questions across your team's knowledge and get cited answers, with an assistant that can act on them.",
+    "iRABU — ask questions across your team's knowledge and get cited answers, with an assistant that can act on them.",
 };
 
 const themeInit = `
 (function () {
   try {
-    var stored = localStorage.getItem("productivai-theme");
+    var stored = localStorage.getItem("irabu-theme");
     var theme = stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     document.documentElement.setAttribute("data-theme", theme);
   } catch (e) {}

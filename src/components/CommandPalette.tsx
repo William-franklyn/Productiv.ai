@@ -43,7 +43,7 @@ export function CommandPalette({
     },
     {
       id: "capabilities",
-      label: "What can ProductivAI do?",
+      label: "What can iRABU do?",
       icon: Sparkles,
       run: () => router.push("/capabilities"),
     },

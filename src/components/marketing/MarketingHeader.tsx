@@ -5,7 +5,7 @@ export function MarketingHeader() {
   return (
     <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
       <Link href="/" className="text-[var(--text-lg)] font-semibold">
-        ProductivAI
+        iRABU
       </Link>
       <nav className="flex items-center gap-1">
         <Link

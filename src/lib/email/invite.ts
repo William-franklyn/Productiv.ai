@@ -17,11 +17,11 @@ export async function sendWorkspaceInvite(params: {
 
   try {
     await client.emails.send({
-      from: process.env.RESEND_FROM ?? "ProductivAI <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM ?? "iRABU <onboarding@resend.dev>",
       to: params.to,
-      subject: `You've been invited to join ${params.orgName} on ProductivAI`,
+      subject: `You've been invited to join ${params.orgName} on iRABU`,
       html: `
-        <p>You've been invited to join <strong>${params.orgName}</strong> on ProductivAI.</p>
+        <p>You've been invited to join <strong>${params.orgName}</strong> on iRABU.</p>
         ${params.message ? `<p>"${params.message}"</p>` : ""}
         <p><a href="${params.inviteUrl}">Accept the invite</a></p>
       `,

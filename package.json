@@ -1,8 +1,8 @@
 {
-  "name": "productivai",
+  "name": "irabu",
   "version": "0.1.0",
   "private": true,
-  "description": "ProductivAI — an AI knowledge assistant and automation chat for teams.",
+  "description": "iRABU — an AI knowledge assistant and automation chat for teams.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

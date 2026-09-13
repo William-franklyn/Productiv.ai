@@ -15,7 +15,7 @@ export function ThemeToggle() {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
     document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem("productivai-theme", next);
+    localStorage.setItem("irabu-theme", next);
   }
 
   return (

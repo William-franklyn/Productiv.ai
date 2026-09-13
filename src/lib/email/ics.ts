@@ -25,7 +25,7 @@ export function buildMeetingICS(params: {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//ProductivAI//Meetings//EN",
+    "PRODID:-//iRABU//Meetings//EN",
     `METHOD:${method}`,
     "BEGIN:VEVENT",
     `UID:${uid}`,

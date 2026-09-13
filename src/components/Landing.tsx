@@ -49,7 +49,7 @@ export function Landing() {
             search result.
           </h1>
           <p className="mt-5 text-[var(--text-lg)] text-[var(--muted)]">
-            Upload your docs, ask in plain language, and ProductivAI answers
+            Upload your docs, ask in plain language, and iRABU answers
             with citations back to the source — then chats with you to turn
             that answer into a task or a chart.
           </p>

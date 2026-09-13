@@ -15,7 +15,7 @@ export function AuthLayout({
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] p-6">
       <div className="w-full max-w-sm">
         <Link href="/" className="text-[var(--text-lg)] font-semibold">
-          ProductivAI
+          iRABU
         </Link>
         <Card className="mt-6 p-6">
           <h1 className="text-[var(--text-lg)] font-medium">{title}</h1>

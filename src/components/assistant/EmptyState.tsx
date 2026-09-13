@@ -9,7 +9,7 @@ const starters = [
 export function EmptyState({ onPick }: { onPick: (text: string) => void }) {
   return (
     <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 pt-24 text-center">
-      <h2 className="text-lg font-medium">Ask ProductivAI anything</h2>
+      <h2 className="text-lg font-medium">Ask iRABU anything</h2>
       <p className="max-w-sm text-[var(--text-sm)] text-[var(--muted)]">
         It can answer from your knowledge base with citations, create tasks, or
         turn numbers into a chart.

@@ -18,7 +18,7 @@ const tiers = [
     name: "Pro",
     price: "$9",
     period: "/workspace/mo",
-    tagline: "For teams that ask ProductivAI something every day.",
+    tagline: "For teams that ask iRABU something every day.",
     features: [
       "15 seats",
       "500 assistant messages / month",

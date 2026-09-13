@@ -2,7 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Backboard.io — cross-session memory for the assistant. One Backboard
-// "assistant" per ProductivAI organization, created lazily on first use, so
+// "assistant" per iRABU organization, created lazily on first use, so
 // memory is shared across every member and conversation in that org (same
 // scope as everything else in the app). Writes go through the direct
 // POST /memories endpoint rather than the Auto-extraction chat pipeline:
@@ -55,7 +55,7 @@ export async function getOrCreateAssistantId(
   try {
     const res = await backboardFetch("/assistants", {
       method: "POST",
-      body: JSON.stringify({ name: `ProductivAI — ${orgName}` }),
+      body: JSON.stringify({ name: `iRABU — ${orgName}` }),
     });
     if (!res.ok) return null;
     const body = (await res.json()) as { assistant_id: string };

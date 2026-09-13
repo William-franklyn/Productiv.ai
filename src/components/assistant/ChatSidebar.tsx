@@ -25,8 +25,8 @@ export function ChatSidebar() {
         .then((data) => setConversations(data.conversations ?? []));
 
     refresh();
-    window.addEventListener("productivai:conversation-updated", refresh);
-    return () => window.removeEventListener("productivai:conversation-updated", refresh);
+    window.addEventListener("irabu:conversation-updated", refresh);
+    return () => window.removeEventListener("irabu:conversation-updated", refresh);
   }, [pathname]);
 
   async function deleteConversation(id: string) {

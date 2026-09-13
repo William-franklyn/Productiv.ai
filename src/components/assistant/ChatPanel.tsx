@@ -26,7 +26,7 @@ import { getEmailDraft, getDraftedPayment, getText } from "@/lib/ai/message-part
 
 type SidePanel = { type: "email"; id: string } | { type: "payment"; id: string } | null;
 
-const VOICE_REPLIES_KEY = "productivai-voice-replies";
+const VOICE_REPLIES_KEY = "irabu-voice-replies";
 
 export function ChatPanel({
   conversationId,
@@ -89,7 +89,7 @@ export function ChatPanel({
   const wasBusyRef = useRef(false);
   useEffect(() => {
     if (wasBusyRef.current && !busy) {
-      window.dispatchEvent(new Event("productivai:conversation-updated"));
+      window.dispatchEvent(new Event("irabu:conversation-updated"));
     }
     wasBusyRef.current = busy;
   }, [busy]);

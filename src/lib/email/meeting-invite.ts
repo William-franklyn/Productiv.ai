@@ -2,7 +2,7 @@ import "server-only";
 import { Resend } from "resend";
 import { buildMeetingICS } from "./ics";
 
-const ORGANIZER_EMAIL = "invites@productiv.local";
+const ORGANIZER_EMAIL = "invites@irabu.local";
 
 function getClient() {
   if (!process.env.RESEND_API_KEY) return null;
@@ -22,7 +22,7 @@ export async function sendMeetingInvite(params: MeetingEmailParams) {
   const client = getClient();
   if (!client) return { sent: false as const, reason: "not_configured" as const };
 
-  const uid = `${params.meetingId}@productiv-ai`;
+  const uid = `${params.meetingId}@irabu`;
   const ics = buildMeetingICS({
     uid,
     title: params.title,
@@ -38,7 +38,7 @@ export async function sendMeetingInvite(params: MeetingEmailParams) {
 
   try {
     await client.emails.send({
-      from: process.env.RESEND_FROM ?? "ProductivAI <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM ?? "iRABU <onboarding@resend.dev>",
       to: params.attendeeEmail,
       subject: `Invitation: ${params.title}`,
       html: `<p>You've been invited to <strong>${params.title}</strong>.</p><p>${when} · ${params.durationMinutes} minutes</p>${params.notes ? `<p>${params.notes}</p>` : ""}`,
@@ -59,7 +59,7 @@ export async function sendMeetingCancellation(params: MeetingEmailParams) {
   const client = getClient();
   if (!client) return { sent: false as const, reason: "not_configured" as const };
 
-  const uid = `${params.meetingId}@productiv-ai`;
+  const uid = `${params.meetingId}@irabu`;
   const ics = buildMeetingICS({
     uid,
     title: params.title,
@@ -73,7 +73,7 @@ export async function sendMeetingCancellation(params: MeetingEmailParams) {
 
   try {
     await client.emails.send({
-      from: process.env.RESEND_FROM ?? "ProductivAI <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM ?? "iRABU <onboarding@resend.dev>",
       to: params.attendeeEmail,
       subject: `Cancelled: ${params.title}`,
       html: `<p><strong>${params.title}</strong> has been cancelled.</p>`,

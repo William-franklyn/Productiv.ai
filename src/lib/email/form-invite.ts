@@ -17,7 +17,7 @@ export async function sendFormLink(params: {
 
   try {
     await client.emails.send({
-      from: process.env.RESEND_FROM ?? "ProductivAI <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM ?? "iRABU <onboarding@resend.dev>",
       to: params.to,
       subject: `Please fill out: ${params.formTitle}`,
       html: `

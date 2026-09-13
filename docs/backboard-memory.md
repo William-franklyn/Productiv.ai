@@ -6,7 +6,7 @@ still knows.
 
 ## Scope
 
-One Backboard "assistant" per ProductivAI organization — created lazily on
+One Backboard "assistant" per iRABU organization — created lazily on
 that org's first chat message and cached on `organizations.backboard_assistant_id`
 (migration `025_backboard_memory.sql`). Memory is shared across every member
 and every conversation in the org, matching how the rest of the app scopes
