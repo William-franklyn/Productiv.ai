@@ -2,10 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { settleBatch, isSolanaConfigured } from "./client";
 
-// Small on purpose: devnet transactions are fast and free, so batching
-// every few events keeps the sponsor's live ledger feeling live instead of
-// waiting for a large batch to accumulate.
-export const SETTLE_BATCH_SIZE = 3;
+export const SETTLE_BATCH_SIZE = 10;
 
 /**
  * Anchors every unsettled usage_event for an org in one Solana devnet memo
