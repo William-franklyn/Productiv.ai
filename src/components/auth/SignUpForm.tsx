@@ -27,6 +27,11 @@ export function SignUpForm() {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      // Stashed as auth user_metadata so the deferred bootstrap path
+      // (src/lib/auth/guard.ts's ensureBootstrapped) can still create the
+      // workspace later if email confirmation means no session — and thus
+      // no immediate call to /api/auth/bootstrap below — happens right now.
+      options: { data: { fullName, orgName, inviteToken } },
     });
 
     if (signUpError) {
@@ -36,7 +41,9 @@ export function SignUpForm() {
     }
 
     if (!data.session) {
-      // Email confirmation is required by this Supabase project's settings.
+      // Email confirmation is required by this Supabase project's settings —
+      // the workspace gets created automatically the first time this user
+      // is resolved after confirming and signing in.
       setNeedsConfirmation(true);
       setPending(false);
       return;
