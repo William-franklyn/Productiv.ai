@@ -6,11 +6,16 @@ import { chatModel } from "@/lib/ai/provider";
 import { buildTools } from "@/lib/ai/tools";
 import { getCitations, getChart, getText, classifyUsageEvents } from "@/lib/ai/message-parts";
 import { settleUnsettledUsage, SETTLE_BATCH_SIZE } from "@/lib/solana/settlement";
+import { isBackboardConfigured, getOrCreateAssistantId, searchMemories, writeMemory } from "@/lib/backboard/client";
 
-function systemPrompt() {
+function systemPrompt(memoryContext?: string) {
   const now = new Date();
   const today = now.toLocaleDateString("en-CA"); // YYYY-MM-DD
   const weekday = now.toLocaleDateString("en-US", { weekday: "long" });
+
+  const memoryBlock = memoryContext
+    ? `\n\nRelevant memory from past conversations with this workspace (use it silently — never mention "memory" or that you recalled something, just use the facts naturally if relevant; ignore anything irrelevant to the current question):\n${memoryContext}`
+    : "";
 
   return `You are the ProductivAI assistant for this workspace. Today is ${weekday}, ${today} (use this to resolve relative dates like "tomorrow" or "next Friday" — never ask the user what today's date is). You have these tools:
 
@@ -34,7 +39,7 @@ function systemPrompt() {
 - receive_payment: use this when the user says they got paid, were reimbursed, or received money — this records immediately, no approval needed.
 - get_receipt: use this when the user asks for the details of a specific past transaction (who, when, transaction id, notes) — defaults to the most recent one if they don't name someone.
 
-Be concise and direct. When you cite knowledge, refer to the source naturally in your sentence (e.g. "According to the Q3 plan…") — the UI attaches full citation details on its own.`;
+Be concise and direct. When you cite knowledge, refer to the source naturally in your sentence (e.g. "According to the Q3 plan…") — the UI attaches full citation details on its own.${memoryBlock}`;
 }
 
 export async function POST(req: NextRequest) {
@@ -61,12 +66,13 @@ export async function POST(req: NextRequest) {
   }
 
   const lastMessage = messages[messages.length - 1];
+  let userText = "";
   if (lastMessage?.role === "user") {
-    const text = getText(lastMessage);
+    userText = getText(lastMessage);
     await supabase.from("messages").insert({
       conversation_id: conversationId,
       role: "user",
-      content: text,
+      content: userText,
     });
 
     const { data: conversation } = await supabase
@@ -77,7 +83,7 @@ export async function POST(req: NextRequest) {
     if (conversation?.title === "New conversation") {
       await supabase
         .from("conversations")
-        .update({ title: text.slice(0, 60) })
+        .update({ title: userText.slice(0, 60) })
         .eq("id", conversationId);
     }
   }
@@ -86,9 +92,21 @@ export async function POST(req: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Cross-session memory (Backboard.io) — best-effort, never blocks the
+  // chat turn. See docs/backboard-memory.md.
+  const backboardAssistantId = isBackboardConfigured()
+    ? await getOrCreateAssistantId(supabase, auth.orgId, auth.orgName)
+    : null;
+  const memories = backboardAssistantId && userText
+    ? await searchMemories(backboardAssistantId, userText)
+    : [];
+  const memoryContext = memories.length
+    ? memories.map((m) => `- ${m.content}`).join("\n")
+    : undefined;
+
   const result = streamText({
     model: chatModel,
-    system: systemPrompt(),
+    system: systemPrompt(memoryContext),
     messages: await convertToModelMessages(messages),
     tools: buildTools({
       supabase,
@@ -104,13 +122,18 @@ export async function POST(req: NextRequest) {
       const assistantMessage = finished[finished.length - 1];
       if (assistantMessage?.role !== "assistant") return;
 
+      const assistantText = getText(assistantMessage);
       await supabase.from("messages").insert({
         conversation_id: conversationId,
         role: "assistant",
-        content: getText(assistantMessage),
+        content: assistantText,
         citations: getCitations(assistantMessage),
         chart: getChart(assistantMessage),
       });
+
+      if (backboardAssistantId && userText && assistantText) {
+        await writeMemory(backboardAssistantId, `Q: ${userText}\nA: ${assistantText}`);
+      }
 
       // Sponsored-credits usage ledger — one event per chargeable action in
       // this turn, refusals/failures are free. See docs/sponsored-credits.md.
