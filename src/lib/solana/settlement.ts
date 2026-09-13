@@ -45,3 +45,35 @@ export async function settleUnsettledUsage(
 
   return { settled: events.length, txSig };
 }
+
+/**
+ * Safety net for orgs whose unsettled events never crossed SETTLE_BATCH_SIZE
+ * via chat traffic (nobody's chatting => nothing ever re-checks the count).
+ * Called on a timer, not per-request — see POST /api/internal/settle-sweep
+ * and docs/solana-settlement-worker.md. Only sweeps events older than
+ * maxAgeMinutes so it doesn't fight normal chat-triggered batching for
+ * events that are still fresh.
+ */
+export async function sweepStaleUnsettledUsage(
+  maxAgeMinutes = 5,
+): Promise<{ orgsSettled: number }> {
+  if (!isSolanaConfigured()) return { orgsSettled: 0 };
+
+  const admin = createAdminClient();
+  const cutoff = new Date(Date.now() - maxAgeMinutes * 60 * 1000).toISOString();
+
+  const { data: stale } = await admin
+    .from("usage_events")
+    .select("organization_id")
+    .is("tx_sig", null)
+    .lt("created_at", cutoff);
+
+  const orgIds = [...new Set((stale ?? []).map((e) => e.organization_id))];
+  for (const orgId of orgIds) {
+    await settleUnsettledUsage(orgId).catch(() => {
+      // One org's Solana call failing shouldn't stop the sweep for the rest.
+    });
+  }
+
+  return { orgsSettled: orgIds.length };
+}
