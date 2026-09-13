@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ChevronsLeft, ChevronsRight, ChevronsUpDown, Check, Plus } from "lucide-react";
 import clsx from "clsx";
 import { navItems } from "@/lib/nav";
+import { Logo } from "@/components/ui/Logo";
 import type { WorkspaceMembership } from "@/lib/auth/guard";
 
 const STORAGE_KEY = "irabu-sidebar-collapsed";
@@ -175,7 +176,14 @@ export function Sidebar({
       )}
     >
       <div className={clsx("flex items-center", collapsed ? "flex-col gap-2" : "justify-between px-2")}>
-        {!collapsed && <div className="text-[var(--text-md)] font-semibold tracking-tight">iRABU</div>}
+        {!collapsed ? (
+          <span className="flex items-center gap-2">
+            <Logo size={18} className="text-[var(--accent)]" />
+            <span className="text-[var(--text-md)] font-semibold tracking-tight">iRABU</span>
+          </span>
+        ) : (
+          <Logo size={18} className="text-[var(--accent)]" />
+        )}
         <button
           onClick={toggle}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}

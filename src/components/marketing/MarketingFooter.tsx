@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { Wordmark } from "@/components/ui/Logo";
 
 export function MarketingFooter() {
   return (
     <footer className="border-t border-[var(--border)] py-8">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-3 px-6 text-[var(--text-sm)] text-[var(--muted)] sm:flex-row sm:justify-between">
-        <span>iRABU</span>
+        <Wordmark size={18} />
         <nav className="flex items-center gap-4">
           <Link href="/" className="hover:text-[var(--ink)]">
             Home

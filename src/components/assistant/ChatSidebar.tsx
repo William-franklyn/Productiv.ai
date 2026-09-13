@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutGrid, MessageSquarePlus, Trash2 } from "lucide-react";
+import { Wordmark } from "@/components/ui/Logo";
 
 interface ConversationRow {
   id: string;
@@ -36,7 +37,7 @@ export function ChatSidebar() {
 
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg)] p-3">
-      <div className="mb-3 px-2 py-1 text-[var(--text-md)] font-semibold tracking-tight">iRABU</div>
+      <Wordmark size={18} className="mb-3 px-2 py-1" />
 
       <Link href="/dashboard" className="nav-row">
         <LayoutGrid size={15} className="shrink-0" />
