@@ -129,7 +129,7 @@ export function ChatMessage({
               <Mail size={11} />
               {m.emailSent
                 ? `Invite emailed to ${m.attendeeEmail}`
-                : `Could not email ${m.attendeeEmail} — check RESEND_API_KEY`}
+                : `Could not email an invite to ${m.attendeeEmail}`}
             </div>
           )}
         </div>

@@ -37,6 +37,8 @@ export function ChatSidebar() {
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] p-3">
+      <div className="mb-3 px-2.5 py-1 text-[var(--text-sm)] font-semibold">iRABU</div>
+
       <Link
         href="/dashboard"
         className="flex items-center gap-2 rounded-[var(--radius)] px-2.5 py-2 text-[var(--text-sm)] text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
