@@ -16,7 +16,9 @@ export async function sendWorkspaceInvite(params: {
   if (!client) return { sent: false as const, reason: "not_configured" as const };
 
   try {
-    await client.emails.send({
+    // See src/lib/email/draft.ts — the Resend SDK resolves with
+    // { error: {...} } on an API-level rejection rather than throwing.
+    const result = await client.emails.send({
       from: process.env.RESEND_FROM ?? "iRABU <onboarding@resend.dev>",
       to: params.to,
       subject: `You've been invited to join ${params.orgName} on iRABU`,
@@ -26,6 +28,9 @@ export async function sendWorkspaceInvite(params: {
         <p><a href="${params.inviteUrl}">Accept the invite</a></p>
       `,
     });
+    if (result.error) {
+      return { sent: false as const, reason: "send_failed" as const, error: result.error.message };
+    }
     return { sent: true as const };
   } catch (err) {
     return { sent: false as const, reason: "send_failed" as const, error: String(err) };

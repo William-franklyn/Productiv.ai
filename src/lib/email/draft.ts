@@ -19,7 +19,13 @@ export async function sendDraftEmail(params: {
   if (!client) return { sent: false as const, reason: "not_configured" as const };
 
   try {
-    await client.emails.send({
+    // The Resend SDK does NOT throw on an API-level rejection (bad sender
+    // domain, sandbox recipient restriction, etc.) — it resolves with
+    // { data: null, error: {...} }. Checking only for a thrown exception
+    // meant every send silently reported success even when Resend rejected
+    // it outright — confirmed empirically: an unchecked send to an
+    // obviously-fake domain returned no exception at all.
+    const result = await client.emails.send({
       from: process.env.RESEND_FROM ?? "iRABU <onboarding@resend.dev>",
       to: params.to,
       replyTo: params.replyTo ?? undefined,
@@ -29,6 +35,9 @@ export async function sendDraftEmail(params: {
         .map((line) => `<p>${line || "&nbsp;"}</p>`)
         .join(""),
     });
+    if (result.error) {
+      return { sent: false as const, reason: "send_failed" as const, error: result.error.message };
+    }
     return { sent: true as const };
   } catch (err) {
     return { sent: false as const, reason: "send_failed" as const, error: String(err) };

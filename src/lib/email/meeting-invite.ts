@@ -37,7 +37,9 @@ export async function sendMeetingInvite(params: MeetingEmailParams) {
   const when = new Date(params.startsAt).toLocaleString();
 
   try {
-    await client.emails.send({
+    // See src/lib/email/draft.ts — the Resend SDK resolves with
+    // { error: {...} } on an API-level rejection rather than throwing.
+    const result = await client.emails.send({
       from: process.env.RESEND_FROM ?? "iRABU <onboarding@resend.dev>",
       to: params.attendeeEmail,
       subject: `Invitation: ${params.title}`,
@@ -49,6 +51,9 @@ export async function sendMeetingInvite(params: MeetingEmailParams) {
         },
       ],
     });
+    if (result.error) {
+      return { sent: false as const, reason: "send_failed" as const, error: result.error.message };
+    }
     return { sent: true as const };
   } catch (err) {
     return { sent: false as const, reason: "send_failed" as const, error: String(err) };
@@ -72,7 +77,9 @@ export async function sendMeetingCancellation(params: MeetingEmailParams) {
   });
 
   try {
-    await client.emails.send({
+    // See src/lib/email/draft.ts — the Resend SDK resolves with
+    // { error: {...} } on an API-level rejection rather than throwing.
+    const result = await client.emails.send({
       from: process.env.RESEND_FROM ?? "iRABU <onboarding@resend.dev>",
       to: params.attendeeEmail,
       subject: `Cancelled: ${params.title}`,
@@ -84,6 +91,9 @@ export async function sendMeetingCancellation(params: MeetingEmailParams) {
         },
       ],
     });
+    if (result.error) {
+      return { sent: false as const, reason: "send_failed" as const, error: result.error.message };
+    }
     return { sent: true as const };
   } catch (err) {
     return { sent: false as const, reason: "send_failed" as const, error: String(err) };
